@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "lexer.h"
+#include "../include/lexer.h"
 
 void lexer_init(Lexer *l, const char *src){
     l->src = src;

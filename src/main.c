@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "lexer.h"
-#include "token.h"
+#include "../include/lexer.h"
+#include "../include/token.h"
 
 int main(){
     Lexer l;
@@ -9,9 +9,9 @@ int main(){
     Token t;
     while((t = lexer_next(&l)).type != TOKEN_EOF){
         if(t.type == TOKEN_NUMBER)
-            printf("NUMBER: %.0f\n", t.value);
+            printf("NUMBER(%.0f)\n", t.value);
         else
-            printf("TOKEN: %d \n", t.type);
+            printf("%s\n", token_type_to_str(t.type));
     }
     return 0;
 }
