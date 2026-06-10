@@ -1,7 +1,7 @@
 CC     = gcc
 CFLAGS = -Wall -Wextra -Iinclude
 
-SRC = src/main.c src/lexer.c
+SRC = src/main.c src/lexer.c src/parser.c src/ast.c
 OUT = compiler
 
 all:
