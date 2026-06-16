@@ -5,7 +5,7 @@
 #include "ast.h"
 
 typedef struct {
-    Lexer lexer;
+    Lexer lexer; // The lexical analyser in the parser
     Token current; // The token we are currently looking at
 }Parser;
 

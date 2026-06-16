@@ -5,7 +5,7 @@
 
 typedef struct {
     const char  *src; //input source
-    int         pos;  //current postion
+    int         pos;  //current postion in the source input
 
 } Lexer;
 

@@ -4,7 +4,7 @@
 
 void parser_init(Parser *p, const char *src){
     lexer_init(&p->lexer, src);
-    p->current = lexer_next(&p->lexer); //load first token
+    p->current = lexer_next(&p->lexer); //load first token to p->current
 }
 
 //forward declaration
