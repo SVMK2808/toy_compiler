@@ -45,19 +45,19 @@ void vm_run(VM *vm){
             }
 
             case OP_DIV: {
-                double a = vm -> stack[--vm -> stack_top];
                 double b = vm -> stack[--vm -> stack_top];
-                if(a == 0){
-                    perror("Error: cannot divide by 0");
+                double a = vm -> stack[--vm -> stack_top];
+                if(b == 0){
+                    fprintf(stderr, "Error: division by zero\n");
                     exit(1);
                 }
 
-                vm -> stack[vm -> stack_top++] = b / a;
+                vm -> stack[vm -> stack_top++] = a / b;
                 break;
             }
 
             case OP_HALT:
-                printf("%.2f\n", vm -> stack[vm -> stack_top - 1]);
+                printf("Result: %.2f\n", vm -> stack[vm -> stack_top - 1]);
                 return;
                 
         }

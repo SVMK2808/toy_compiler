@@ -26,6 +26,10 @@ ASTNode *parse_factor(Parser *p){
     if(p-> current.type == TOKEN_LPAREN){
         advance(p);
         ASTNode *node = parse_expr(p);
+        if(p -> current.type != TOKEN_RPAREN){
+            fprintf(stderr, "Error: missing closing ')'\n");
+            exit(1);
+        }
         advance(p);
         return node;
     }

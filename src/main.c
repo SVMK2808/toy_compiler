@@ -3,10 +3,15 @@
 #include "../include/ast.h"
 #include "../include/codegen.h"
 #include "../include/vm.h"
+#include <stdlib.h>
 
-int main(){
+int main(int argc, char* argv[]){
+    if(argc < 2){
+        perror("Usage: ./compiler <expression>\n");
+        exit(1);
+    }
     Parser p;
-    parser_init(&p, "(1 + 2) * (3 + 4)");
+    parser_init(&p, argv[1]);
     ASTNode *tree = parse_expr(&p);
 
     //Codegen
@@ -18,7 +23,6 @@ int main(){
     //Run
     printf("AST tree:\n");
     print_ast(tree, 0);
-    printf("\nResult: ");
     vm_run(&vm);
     
     free_ast(tree);
