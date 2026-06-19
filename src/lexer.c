@@ -1,7 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "../include/lexer.h"
+
+static Token make_token(TokenType token){
+    Token t;
+    t.type = token;
+    t.name[0] = '\0';
+    t.value = 0.0;
+    return t;
+}
 
 void lexer_init(Lexer *l, const char *src){
     l->src = src;
@@ -14,9 +23,38 @@ Token lexer_next(Lexer *l){
         l->pos++;
     
     char c = l->src[l->pos];
+    //printf("DEBUG: pos=%d c='%c'\n", l->pos, c);
     // EOF
 
-    if(c == '\0') return (Token){ TOKEN_EOF, 0};
+    if(c == '\0') return make_token(TOKEN_EOF);
+
+    //identifiers and keywords
+    if(isalpha(c) || c == '_'){
+        char buf[64];
+        int len = 0;
+        while(isalnum(l->src[l->pos]) || l -> src[l -> pos] == '_'){
+            /*Fixed bug - l -> src[l -> pos] was inside isalnum()
+            which evaluated to 1 and isalnum(1) is false because: 
+            - isalnum() takes ASCII values of the input
+            - 1 is the ASCII value for SOH - Start of Header, not alphanumeric
+            - hence, isalnum(1) was false, hence l -> pos never advanced, leading to infinite loop
+            - Corrected - placed l -> src[l -> pos] out of the isalnum() function call 
+            */ 
+
+            buf[len++] = l -> src[l->pos++];
+        }
+        buf[len] = '\0';
+
+        //check for keywords
+        Token t = make_token(TOKEN_IDENTIFIER);
+        strncpy(t.name, buf, 64);
+        if(strcmp(t.name, "let") == 0) t.type = TOKEN_LET;
+        else if(strcmp(t.name, "if") == 0) t.type = TOKEN_IF;
+        else if(strcmp(t.name, "else") == 0) t.type = TOKEN_ELSE;
+        else if(strcmp(t.name, "while") == 0) t.type = TOKEN_WHILE;
+        else if(strcmp(t.name, "print") == 0) t.type = TOKEN_PRINT;
+        return t;
+    }
 
     // Number 
     if(isdigit(c)){
@@ -24,19 +62,35 @@ Token lexer_next(Lexer *l){
         while(isdigit(l->src[l->pos])){
             val = val * 10 + (l->src[l->pos++] - '0');
         }
-        return (Token) {TOKEN_NUMBER, val};
+        Token t = make_token(TOKEN_NUMBER);
+        t.value = val;
+        return t;
     }
 
     l -> pos++;
 
+    //two character operators
+    if(c == '=' && l -> src[l-> pos + 1] == '='){
+        l->pos += 2;
+        return make_token(TOKEN_EQ);
+    }
+
+    //one character operators and punchuation
+    l -> pos++;
     switch(c){
-        case '+' : return (Token) {TOKEN_PLUS, 0};
-        case '-' : return (Token) {TOKEN_MINUS, 0};
-        case '*' : return (Token) {TOKEN_STAR, 0};
-        case '/' : return (Token) {TOKEN_SLASH, 0};
-        case '(' : return (Token) {TOKEN_LPAREN, 0};
-        case ')' : return (Token) {TOKEN_RPAREN, 0};
-        default : return (Token) {TOKEN_UNKNOWN, 0};
+        case '+' : return make_token(TOKEN_PLUS);
+        case '-' : return make_token(TOKEN_MINUS);
+        case '*' : return make_token(TOKEN_STAR);
+        case '/' : return make_token(TOKEN_SLASH);
+        case '=' : return make_token(TOKEN_ASSIGN);
+        case '<' : return make_token(TOKEN_LT);
+        case '>' : return make_token(TOKEN_GT);
+        case '(' : return make_token(TOKEN_LPAREN);
+        case ')' : return make_token(TOKEN_RPAREN);
+        case '{' : return make_token(TOKEN_LBRACE);
+        case '}' : return make_token(TOKEN_RBRACE);
+        case ';' : return make_token(TOKEN_SEMICOLON);
+        default : return make_token(TOKEN_UNKNOWN);
 
     }
 

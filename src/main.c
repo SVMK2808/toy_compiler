@@ -1,30 +1,20 @@
 #include <stdio.h>
-#include "../include/parser.h"
-#include "../include/ast.h"
-#include "../include/codegen.h"
-#include "../include/vm.h"
+#include "../include/lexer.h"
+#include "../include/token.h"
 #include <stdlib.h>
 
-int main(int argc, char* argv[]){
-    if(argc < 2){
-        perror("Usage: ./compiler <expression>\n");
-        exit(1);
+int main(void){
+    Lexer l;
+    lexer_init(&l, "let x = 5 + 3");
+
+    Token t;
+    while ((t = lexer_next(&l)).type != TOKEN_EOF) {
+        if (t.type == TOKEN_NUMBER)
+            printf("NUMBER(%.0f)\n", t.value);
+        else if (t.type == TOKEN_IDENTIFIER)
+            printf("IDENT(%s)\n", t.name);
+        else
+            printf("%s\n", token_type_to_str(t.type));
     }
-    Parser p;
-    parser_init(&p, argv[1]);
-    ASTNode *tree = parse_expr(&p);
-
-    //Codegen
-    VM vm;
-    vm_init(&vm);
-    codegen(tree, &vm);
-    vm_emit(&vm, OP_HALT, 0);
-
-    //Run
-    printf("AST tree:\n");
-    print_ast(tree, 0);
-    vm_run(&vm);
-    
-    free_ast(tree);
     return 0;
 }
