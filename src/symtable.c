@@ -1,6 +1,7 @@
 #include "../include/symtable.h"
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 int linear_search(SymTable *st, const char *name){
     for(int i = 0; i < st -> count; i++){
@@ -16,6 +17,7 @@ void symtable_init(SymTable *st){
 }
 
 void symtable_set(SymTable *st, const char *name, double value){
+    
     int index = linear_search(st, name);
     if(index >= 0){ // element already exists
         st -> symbols[index].value = value;

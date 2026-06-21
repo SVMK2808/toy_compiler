@@ -1,15 +1,22 @@
 #include "../include/vm.h"
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 void vm_init(VM *vm){
     vm -> code_count = 0;
     vm -> stack_top = 0;
+    symtable_init(&vm -> symtable);
 }
 
-void vm_emit(VM *vm, OpCode op, double operand){
-    vm -> code[vm->code_count].code = op;
-    vm -> code[vm->code_count].operand = operand;
+void vm_emit(VM *vm, OpCode op, double operand, const char* name){
+    vm -> code[vm->code_count].code =       op;
+    vm -> code[vm->code_count].operand =    operand;
+    if(name){
+        strncpy(vm -> code[vm -> code_count].name, name, 64);
+    }else{
+        vm -> code[vm -> code_count].name[0] = '\0';
+    }
     vm -> code_count++;
 
 }
@@ -17,7 +24,7 @@ void vm_emit(VM *vm, OpCode op, double operand){
 void vm_run(VM *vm){
     for(int i = 0; i < vm -> code_count; i++){
         Instruction ins = vm -> code[i];
-
+        
         switch(ins.code){
             case OP_PUSH:
                 vm -> stack[vm -> stack_top++] = ins.operand;
@@ -56,8 +63,30 @@ void vm_run(VM *vm){
                 break;
             }
 
+            case OP_STORE: {
+                double val = vm -> stack[--vm -> stack_top];
+                symtable_set(&vm -> symtable, ins.name, val);
+                break;
+            }
+
+            case OP_LOAD: {
+                if(!symtable_exists(&vm -> symtable, ins.name)){
+                    printf("Error: undefined variable: %s", ins.name);
+                    exit(1);
+                }
+
+                double val = symtable_get(&vm -> symtable, ins.name);
+                vm -> stack[vm -> stack_top++] = val;
+                break;
+            }
+
+            case OP_PRINT: {
+                double val = vm -> stack[--vm -> stack_top];
+                printf("%.02f\n", val);
+                break;
+            }
+                
             case OP_HALT:
-                printf("Result: %.2f\n", vm -> stack[vm -> stack_top - 1]);
                 return;
                 
         }
