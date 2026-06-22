@@ -23,7 +23,6 @@ Token lexer_next(Lexer *l){
         l->pos++;
     
     char c = l->src[l->pos];
-    //printf("DEBUG: pos=%d c='%c'\n", l->pos, c);
     // EOF
 
     if(c == '\0') return make_token(TOKEN_EOF);
@@ -33,18 +32,10 @@ Token lexer_next(Lexer *l){
         char buf[64];
         int len = 0;
         while(isalnum(l->src[l->pos]) || l -> src[l -> pos] == '_'){
-            /*Fixed bug - l -> src[l -> pos] was inside isalnum()
-            which evaluated to 1 and isalnum(1) is false because: 
-            - isalnum() takes ASCII values of the input
-            - 1 is the ASCII value for SOH - Start of Header, not alphanumeric
-            - hence, isalnum(1) was false, hence l -> pos never advanced, leading to infinite loop
-            - Corrected - placed l -> src[l -> pos] out of the isalnum() function call 
-            */ 
-
             buf[len++] = l -> src[l->pos++];
         }
         buf[len] = '\0';
-
+        
         //check for keywords
         Token t = make_token(TOKEN_IDENTIFIER);
         strncpy(t.name, buf, 64);
@@ -53,6 +44,7 @@ Token lexer_next(Lexer *l){
         else if(strcmp(t.name, "else") == 0) t.type = TOKEN_ELSE;
         else if(strcmp(t.name, "while") == 0) t.type = TOKEN_WHILE;
         else if(strcmp(t.name, "print") == 0) t.type = TOKEN_PRINT;
+
         return t;
     }
 
@@ -64,19 +56,19 @@ Token lexer_next(Lexer *l){
         }
         Token t = make_token(TOKEN_NUMBER);
         t.value = val;
+
         return t;
     }
 
     l -> pos++;
 
     //two character operators
-    if(c == '=' && l -> src[l-> pos + 1] == '='){
-        l->pos += 2;
+    if(c == '=' && l -> src[l-> pos] == '='){
+        l->pos++;
         return make_token(TOKEN_EQ);
     }
 
     //one character operators and punchuation
-    l -> pos++;
     switch(c){
         case '+' : return make_token(TOKEN_PLUS);
         case '-' : return make_token(TOKEN_MINUS);

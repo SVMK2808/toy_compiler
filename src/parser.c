@@ -49,12 +49,35 @@ ASTNode *parse_factor(Parser *p){
         return node;
     }
 
-    printf("Error: unexpected token\n");
+    printf("Error: unexpected token: \n");
     exit(1);
 }
 
+ASTNode **parse_block(Parser *p, int *count){
+    ASTNode **stmts = malloc(sizeof(ASTNode*) * MAX_STATEMENTS);
+    *count = 0;
+
+    if(p -> current.type != TOKEN_LBRACE){
+        printf("Error: expected '{' \n");
+        exit(1);
+    }
+    advance(p);     //consume '{'
+    while(p -> current.type != TOKEN_RBRACE && 
+          p -> current.type != TOKEN_EOF){
+            stmts[(*count)++] = parse_statement(p);
+            if(p -> current.type == TOKEN_SEMICOLON)
+                advance(p);
+          }
+
+          if(p -> current.type != TOKEN_RBRACE){
+            printf("Error: expected '}'\n");
+            exit(1);
+          }
+
+          advance(p);   // consume '}'
+          return stmts;
+}
 ASTNode *parse_statement(Parser *p){
-    
     // let x = <expr>
     if(p -> current.type == TOKEN_LET){
         advance(p); // consume "let"
@@ -83,6 +106,56 @@ ASTNode *parse_statement(Parser *p){
         advance(p);
         ASTNode *expr = parse_expr(p);
         return make_print(expr);
+    }
+
+    // if ( <condition> ) { <then> } else { <else> }
+    if(p -> current.type == TOKEN_IF){
+        advance(p);   // consume 'if'
+        if(p -> current.type != TOKEN_LPAREN){
+            printf("Error: expected '(' after 'if' \n");
+            exit(1);
+        }
+
+        advance(p);     // consume '('
+
+        // parse condition
+        ASTNode *left = parse_expr(p);
+
+        //expect comparision operator
+        char op[3];
+        if(p -> current.type == TOKEN_GT)       strncpy(op ,">", 3);
+        else if(p -> current.type == TOKEN_LT)  strncpy(op ,"<", 3);
+        else if(p -> current.type == TOKEN_EQ)  strncpy(op ,"==", 3);
+        else{
+            printf("Error: expected comparision operator.\n");
+            exit(1);
+        }
+        advance(p);     //consume operator
+
+        ASTNode *right = parse_expr(p);
+        ASTNode *condition = make_compare(op, left, right);
+        if(p -> current.type != TOKEN_RPAREN){
+            printf("Error: expected ')' \n");
+            exit(1);
+        }
+
+        advance(p);  // consume ')'
+        
+        // parse then block 
+        int then_count = 0;
+        ASTNode **then_body = parse_block(p, &then_count);
+
+        // parse optional else block 
+        int else_count = 0;
+        ASTNode **else_body = NULL;
+        if(p -> current.type == TOKEN_ELSE){
+            advance(p);     //consume 'else'
+            else_body = parse_block(p, &else_count);
+        }
+
+        return make_if(condition, then_body, then_count,
+                        else_body, else_count);
+
     }
 
     // plain expression statement

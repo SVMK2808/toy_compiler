@@ -1,0 +1,23 @@
+# Build output
+compiler
+
+# Object files
+*.o
+*.a
+*.d
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# clangd / compile commands
+compile_commands.json
+.cache/

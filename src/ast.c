@@ -43,6 +43,27 @@ ASTNode *make_print(ASTNode *expr){
     return t;
 }
 
+ASTNode *make_if(ASTNode *condition,
+                 ASTNode **then_body, int then_count,
+                 ASTNode **else_body, int else_count){
+                    ASTNode *node = malloc(sizeof(ASTNode));
+                    node -> type = NODE_IF;
+                    node -> if_else.condition = condition;
+                    node -> if_else.then_body = then_body;
+                    node -> if_else.then_count = then_count;
+                    node -> if_else.else_body = else_body;
+                    node -> if_else.else_count = else_count;
+                    return node;
+                 }
+ASTNode *make_compare(char *op, ASTNode *left, ASTNode *right){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_COMPARE;
+    strncpy(node -> compare.op, op, 3);
+    node -> compare.left = left;
+    node -> compare.right = right;
+    return node;
+
+}
 void print_ast(ASTNode *node, int depth){
     if(node == NULL) return;
 
@@ -72,6 +93,32 @@ void print_ast(ASTNode *node, int depth){
             print_ast(node -> binop.left, depth + 1);
             print_ast(node -> binop.right, depth + 1);
             break;
+
+        case NODE_COMPARE:
+            printf("COMPARE(%s):\n", node -> compare.op);
+            print_ast(node -> compare.left, depth + 1);
+            print_ast(node -> compare.right, depth + 1);
+            break;
+        
+        case NODE_IF:
+            printf("IF\n");
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("CONDITION:\n");
+            print_ast(node -> if_else.condition, depth + 2);
+
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("THEN: \n");
+            for(int i = 0; i < node -> if_else.then_count; i++)
+                print_ast(node -> if_else.then_body[i], depth + 2);
+
+            if(node -> if_else.else_body){
+                for(int i = 0; i < depth + 1; i++) printf(" ");
+                printf("ELSE: \n");
+                for(int i = 0; i < node -> if_else.else_count; i++)
+                    print_ast(node -> if_else.else_body[i], depth + 2);
+            }
+            break;
+
     }
     
     
@@ -92,6 +139,22 @@ void free_ast(ASTNode *node){
         case NODE_BINOP:
             free_ast(node -> binop.left);
             free_ast(node -> binop.right);
+            break;
+
+        case NODE_COMPARE:
+            free_ast(node -> compare.left);
+            free_ast(node -> compare.right);
+            break;
+        
+        case NODE_IF:
+            free_ast(node -> if_else.condition);
+            for(int i = 0; i< node -> if_else.then_count; i++)
+                free_ast(node -> if_else.then_body[i]);
+            free(node -> if_else.then_body);
+
+            for(int i = 0; i < node -> if_else.else_count; i++)
+                free_ast(node -> if_else.else_body[i]);
+            free(node -> if_else.else_body);
             break;
     }
     free(node);  // covers for NODE_NUMBER and NODE_IDENT as they are individual nodes

@@ -85,6 +85,40 @@ void vm_run(VM *vm){
                 printf("%.02f\n", val);
                 break;
             }
+
+            case OP_GT: {
+                double  b = vm -> stack[--vm -> stack_top];
+                double  a = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (a > b) ? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_LT: {
+                double a = vm -> stack[--vm -> stack_top];
+                double b = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (a < b) ? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_EQ: {
+                double a = vm -> stack[--vm -> stack_top];
+                double b = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (a == b)? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_JMP: {
+                i = (int)ins.operand - 1; // -1 because loop will i++
+                break;
+            }
+
+            case OP_JMP_IF_FALSE: {
+                double val = vm -> stack[--vm -> stack_top];
+                if(val == 0.0){
+                    i = (int)ins.operand - 1;
+                }
+                break;
+            }
                 
             case OP_HALT:
                 return;

@@ -10,7 +10,8 @@
 
 int main(void){
     Parser p;
-    parser_init(&p, "let x = 5 + 3; let y = x; print y");
+    parser_init(&p, "let x = 5; if (x > 3) { print x } else { print 0 }");
+    
 
     int count = 0;
     ASTNode **stmts = parse_program(&p, &count);
@@ -31,7 +32,7 @@ int main(void){
 
     //run
     printf("OUTPUT: \n");
-   vm_run(&vm);
+    vm_run(&vm);
 
     // free 
     for(int i = 0; i < count; i ++){

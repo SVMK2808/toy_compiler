@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "../include/codegen.h"
 
 void codegen(ASTNode *node, VM *vm){
@@ -32,6 +33,46 @@ void codegen(ASTNode *node, VM *vm){
                 case '/' : vm_emit(vm, OP_DIV, 0, NULL); break;
             }
             break;
+
+            case NODE_COMPARE:
+                codegen(node -> compare.left, vm);
+                codegen(node -> compare.right, vm);
+                if     (strcmp(node -> compare.op, ">") == 0) vm_emit(vm, OP_GT, 0, NULL);
+                else if(strcmp(node -> compare.op, "<") == 0) vm_emit(vm, OP_LT, 0, NULL);
+                else if(strcmp(node -> compare.op, "==") == 0) vm_emit(vm, OP_EQ, 0, NULL);
+                break;
+
+            case NODE_IF:{
+                // 1. emit condition
+                codegen(node -> if_else.condition, vm);
+
+                // 2. emit JMP_IF_FALSE - we don't know the target yet, patch later
+                int jmp_if_false_idx = vm -> code_count;
+                vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
+
+                // 3. emit then body
+                for(int i = 0; i < node -> if_else.then_count; i++){
+                    codegen(node -> if_else.then_body[i], vm);
+                }
+
+                // 4. emit JMP to skip else - patch later
+                int jmp_idx =  vm -> code_count;
+                vm_emit(vm, OP_JMP, 0, NULL);
+
+                // 5. patch JMP_IF_FALSE to point here (start of else)
+                vm -> code[jmp_if_false_idx].operand = vm -> code_count;
+
+                //6. emit else body
+                if(node -> if_else.else_body){
+                    for(int i = 0; i < node -> if_else.else_count; i++){
+                        codegen(node -> if_else.else_body[i], vm);
+                    }
+                }
+
+                //7. patch JMP to point here (after else)
+                vm -> code[jmp_idx].operand = vm -> code_count;
+                break;
+            }
     }
     
 

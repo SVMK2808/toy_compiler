@@ -18,5 +18,6 @@ ASTNode* parse_term(Parser *p); //handles * and /
 ASTNode* parse_factor(Parser *p); //handles numbers and parentheses
 ASTNode* parse_statement(Parser *p);
 ASTNode** parse_program(Parser *p, int *count);
+ASTNode** parse_block(Parser *p, int *count);
 
 #endif //PARSER_H

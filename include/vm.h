@@ -11,6 +11,11 @@ typedef enum {
     OP_SUB,
     OP_MUL,
     OP_DIV,
+    OP_LT,          // greater than
+    OP_GT,          // lesser than
+    OP_EQ,          // equal to
+    OP_JMP,         // unconditional jump
+    OP_JMP_IF_FALSE,// conditional jump
     OP_STORE, //pop stack, store into the symbol table
     OP_LOAD,  //push from symtable onto stack 
     OP_PRINT, // pop stack, print value
