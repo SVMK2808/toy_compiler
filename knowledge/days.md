@@ -2,6 +2,33 @@
 
 ---
 
+## Day 10 — while loop support ✅
+
+**Date:** 2026-06-23
+
+### What was added
+- `while (<cond>) { <body> }` statement parsing (`parse_statement`)
+- `NODE_WHILE` AST node with `condition`, `body[]`, `body_count`
+- `make_while()` constructor, `print_ast` + `free_ast` cases
+- Codegen with backpatching: `OP_JMP_IF_FALSE` (exit) + `OP_JMP` (loop back)
+- Fixed gcc warning: explicit `NODE_NUMBER`/`NODE_IDENT` cases in `free_ast` switch
+
+### Note
+While loops are structurally complete but fully useful loops require variable reassignment (`x = expr`) — planned for Day 11.
+
+### Test input
+```
+let x = 0; while (x > 1) { print x }
+```
+
+### Output
+```
+OUTPUT:
+(empty — condition false on entry, loop body never executes)
+```
+
+---
+
 ## Day 9 — if/else, comparison operators, full pipeline ✅
 
 **Date:** 2026-06-22  
