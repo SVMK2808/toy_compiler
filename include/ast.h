@@ -8,8 +8,8 @@ typedef enum{
     NODE_LET,   // variable declaration eg. let x = 5
     NODE_PRINT,  // print statement
     NODE_IF,    //if/else statement
-    NODE_COMPARE //comparision >, <, ==
-
+    NODE_COMPARE, //comparision >, <, ==
+    NODE_WHILE // for while loop
 }NodeType;
 
 typedef struct ASTNode{
@@ -41,7 +41,13 @@ typedef struct ASTNode{
         int             then_count;  // to count number of statements in the true branch
         struct ASTNode **else_body;  // else branch (can be NULL)
         int             else_count;  // to count number of statements in the false branch
-    } if_else;                      // for NODE_IF
+    } if_else;          // for NODE_IF
+
+    struct {
+        struct ASTNode *condition;  // the loop condition
+        struct ASTNode **body;      // statements inside the loop body
+        int             body_count; // number of statements in the loop body
+    } while_loop;       // for NODE_WHILE
 
     struct ASTNode *print;      // for NODE_PRINT - expression to print
     
@@ -57,6 +63,7 @@ ASTNode* make_compare(char *op, ASTNode *left, ASTNode *right);
 ASTNode* make_if(ASTNode *condition, 
                  ASTNode **then_body, int then_count,
                  ASTNode **else_body, int else_count);
+ASTNode* make_while(ASTNode *condition, ASTNode **body, int body_count);
 void     print_ast(ASTNode* node, int depth);
 void     free_ast(ASTNode* node);
 

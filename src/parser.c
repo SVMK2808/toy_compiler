@@ -158,6 +158,40 @@ ASTNode *parse_statement(Parser *p){
 
     }
 
+    // while ( <condition> ) { <body> }
+    if(p -> current.type == TOKEN_WHILE){
+        advance(p);     // consume 'while'
+        if(p -> current.type != TOKEN_LPAREN){
+            printf("Error: expected a '(' after 'while'. \n");
+            exit(1);
+        }
+
+        advance(p); // consume '('
+        ASTNode *left = parse_expr(p);
+        char op[3];
+        if(p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
+        else if(p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
+        else if(p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
+        else {
+            printf("Error: expected comparision operator in while condition.\n");
+            exit(1);
+        }       
+        advance(p);     // consume operator
+        ASTNode *right = parse_expr(p);
+        ASTNode *condition = make_compare(op, left,right);
+        if(p -> current.type != TOKEN_RPAREN){
+            printf("Error: expected ')' after while condition. \n");
+            exit(1);
+        }
+        advance(p);
+
+        int body_count = 0;
+        ASTNode **body = parse_block(p, &body_count);
+        return make_while(condition, body, body_count);
+
+    }
+
+    
     // plain expression statement
     return parse_expr(p);
 }

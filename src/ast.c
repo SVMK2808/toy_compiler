@@ -64,6 +64,15 @@ ASTNode *make_compare(char *op, ASTNode *left, ASTNode *right){
     return node;
 
 }
+
+ASTNode *make_while(ASTNode *condition, ASTNode **body, int body_count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_WHILE;
+    node -> while_loop.condition = condition;
+    node -> while_loop.body = body;
+    node -> while_loop.body_count = body_count;
+    return node;
+}
 void print_ast(ASTNode *node, int depth){
     if(node == NULL) return;
 
@@ -119,6 +128,17 @@ void print_ast(ASTNode *node, int depth){
             }
             break;
 
+        case NODE_WHILE:
+            printf("WHILE\n");
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("CONDITION: \n");
+            print_ast(node -> while_loop.condition, depth + 2);
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("BODY: \n");
+            for(int i = 0; i < node -> while_loop.body_count; i++){
+                print_ast(node -> while_loop.body[i], depth + 2);
+            }
+        break;
     }
     
     
@@ -156,6 +176,18 @@ void free_ast(ASTNode *node){
                 free_ast(node -> if_else.else_body[i]);
             free(node -> if_else.else_body);
             break;
+
+        case NODE_WHILE:
+            free_ast(node -> while_loop.condition);
+            for(int i = 0; i< node -> while_loop.body_count; i++)
+                free_ast(node -> while_loop.body[i]);
+            free(node -> while_loop.body);
+            break;
+
+        /*These two are just to silence the compiler warning. */
+        case NODE_IDENT:    
+        case NODE_NUMBER:
+        break;
     }
     free(node);  // covers for NODE_NUMBER and NODE_IDENT as they are individual nodes
 }
