@@ -2,6 +2,32 @@
 
 ---
 
+## Day 11 — do-while loop, variable reassignment ✅
+
+**Date:** 2026-06-24
+
+### What was added
+- `do { <body> } while (<cond>)` — body executes before condition is checked
+- `TOKEN_DO` keyword in lexer + token.h
+- `NODE_DO_WHILE` AST node; codegen: body → condition → JMP_IF_FALSE/JMP
+- `peek_next()` helper in parser.c — snapshots/restores Lexer state to look ahead without consuming
+- Variable reassignment: `x = expr` (without `let`)
+- `NODE_ASSIGN` AST node; codegen: evaluate RHS → `OP_STORE`
+
+### Test input
+```
+let x = 3; while (x > 0) { print x; x = x - 1 }
+```
+
+### Output
+```
+3.00
+2.00
+1.00
+```
+
+---
+
 ## Day 10 — while loop support ✅
 
 **Date:** 2026-06-23
