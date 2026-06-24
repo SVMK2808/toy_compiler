@@ -44,6 +44,7 @@ Token lexer_next(Lexer *l){
         else if(strcmp(t.name, "else") == 0) t.type = TOKEN_ELSE;
         else if(strcmp(t.name, "while") == 0) t.type = TOKEN_WHILE;
         else if(strcmp(t.name, "print") == 0) t.type = TOKEN_PRINT;
+        else if(strcmp(t.name, "do") == 0) t.type = TOKEN_DO;
 
         return t;
     }

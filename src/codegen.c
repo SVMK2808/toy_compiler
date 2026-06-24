@@ -74,6 +74,11 @@ void codegen(ASTNode *node, VM *vm){
                 break;
             }
 
+            case NODE_ASSIGN:
+                codegen(node -> assign.value, vm);
+                vm_emit(vm, OP_STORE, 0, node -> assign.name);
+                break;
+
             case NODE_WHILE: {
                 //1. save the index we'll jump back to (top of the loop)
                 int loop_start = vm -> code_count;
@@ -95,6 +100,23 @@ void codegen(ASTNode *node, VM *vm){
 
                 // 6. patch JMP_IF_FALSE to point here (after the loop)
                 vm -> code[jmp_if_false_idx].operand = vm -> code_count;
+                break;
+            }
+
+            case NODE_DO_WHILE:{
+                //1. save loop start (top of body)
+                int loop_start = vm -> code_count;
+
+                //2. emit body first
+                for(int i = 0; i < node -> do_while.body_count; i++)
+                    codegen(node -> do_while.body[i], vm);
+
+                //3. emit condition
+                codegen(node -> do_while.condition, vm);
+
+                //4. If condition true, jump back to loop_start
+                vm_emit(vm, OP_JMP_IF_FALSE, vm -> code_count + 2, NULL); // skip the JMP
+                vm_emit(vm, OP_JMP, loop_start, NULL);
                 break;
             }
     }

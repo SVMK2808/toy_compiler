@@ -10,7 +10,7 @@
 
 int main(void){
     Parser p;
-    parser_init(&p, "let x = 0; while (x > 1) { print x }");
+    parser_init(&p, "let x = 3; while (x > 0) { print x; x = x - 1 }");
     
 
     int count = 0;

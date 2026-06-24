@@ -12,6 +12,7 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_PRINT,
+    TOKEN_DO,
 
     // Operators
     TOKEN_PLUS,
@@ -44,13 +45,19 @@ typedef struct {
 
 static inline const char *token_type_to_str(TokenType type){
     switch(type){
+        //Literals
         case TOKEN_NUMBER: return "NUMBER";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
+
+        //Keywords
         case TOKEN_LET: return "LET";
         case TOKEN_IF: return "IF";
         case TOKEN_ELSE: return "ELSE";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_PRINT: return "PRINT";
+        case TOKEN_DO: return "DO";
+
+        //Operators
         case TOKEN_PLUS: return "PLUS";
         case TOKEN_MINUS: return "MINUS";
         case TOKEN_STAR: return "STAR";
@@ -59,11 +66,15 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_LT: return "LT";
         case TOKEN_GT: return "GT";
         case TOKEN_EQ: return "EQ";
+
+        //Punctuation
         case TOKEN_LPAREN: return "LPAREN";
         case TOKEN_RPAREN: return "RPAREN";
         case TOKEN_LBRACE: return "LBRACE";
         case TOKEN_RBRACE: return "RBRACE";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+
+        //Special characters
         case TOKEN_EOF: return "EOF";
         case TOKEN_UNKNOWN: return "UNKOWN";
         default: return "???";

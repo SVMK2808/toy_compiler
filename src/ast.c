@@ -65,12 +65,29 @@ ASTNode *make_compare(char *op, ASTNode *left, ASTNode *right){
 
 }
 
+ASTNode *make_assign(const char* name, ASTNode *value){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_ASSIGN;
+    strncpy(node -> assign.name, name, 64);
+    node -> assign.value = value;
+    return node;
+}
+
 ASTNode *make_while(ASTNode *condition, ASTNode **body, int body_count){
     ASTNode *node = malloc(sizeof(ASTNode));
     node -> type = NODE_WHILE;
     node -> while_loop.condition = condition;
     node -> while_loop.body = body;
     node -> while_loop.body_count = body_count;
+    return node;
+}
+
+ASTNode *make_do_while(ASTNode *condition, ASTNode **body, int body_count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_DO_WHILE;
+    node -> do_while.condition = condition;
+    node -> do_while.body = body;
+    node -> do_while.body_count = body_count;
     return node;
 }
 void print_ast(ASTNode *node, int depth){
@@ -128,6 +145,11 @@ void print_ast(ASTNode *node, int depth){
             }
             break;
 
+        case NODE_ASSIGN:
+            printf("ASSIGN(%s)\n", node -> assign.name);
+            print_ast(node -> assign.value, depth + 1);
+            break;
+
         case NODE_WHILE:
             printf("WHILE\n");
             for(int i = 0; i < depth + 1; i++) printf(" ");
@@ -139,6 +161,19 @@ void print_ast(ASTNode *node, int depth){
                 print_ast(node -> while_loop.body[i], depth + 2);
             }
         break;
+
+        case NODE_DO_WHILE:
+            printf("DO_WHILE\n");
+            for(int i = 0; i < depth + 1; i++)printf(" ");
+            printf("BODY: \n");
+            for(int i = 0; i < node -> do_while.body_count; i++)
+                print_ast(node -> do_while.body[i], depth + 2);
+
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("CONDITION: \n");
+            print_ast(node -> do_while.condition, depth + 2);
+            break;
+
     }
     
     
@@ -176,12 +211,23 @@ void free_ast(ASTNode *node){
                 free_ast(node -> if_else.else_body[i]);
             free(node -> if_else.else_body);
             break;
+        
+        case NODE_ASSIGN:
+            free_ast(node -> assign.value);
+            break;
 
         case NODE_WHILE:
             free_ast(node -> while_loop.condition);
             for(int i = 0; i< node -> while_loop.body_count; i++)
                 free_ast(node -> while_loop.body[i]);
             free(node -> while_loop.body);
+            break;
+
+        case NODE_DO_WHILE:
+            for(int i = 0; i < node -> do_while.body_count; i++)
+                free_ast(node -> do_while.body[i]);
+            free(node -> do_while.body);
+            free_ast(node -> do_while.condition);
             break;
 
         /*These two are just to silence the compiler warning. */

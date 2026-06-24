@@ -13,6 +13,15 @@ void parser_init(Parser *p, const char *src){
 //forward declaration
 ASTNode *parse_expr(Parser *p);
 
+static Token peek_next(Parser *p){
+    Lexer saved = p -> lexer;
+    //snapshot lexer state (just src + pos)
+    Token next = lexer_next(&p -> lexer); // read the next token
+    p -> lexer = saved;
+    // restore, as if we never read it.
+    return next;
+}
+
 static Token advance(Parser *p){
     Token prev = p -> current;
     p -> current = lexer_next(&p-> lexer); //move to the next token
@@ -189,6 +198,72 @@ ASTNode *parse_statement(Parser *p){
         ASTNode **body = parse_block(p, &body_count);
         return make_while(condition, body, body_count);
 
+    }
+
+    // do { <body> } while (<cpndition> )
+    if(p -> current.type == TOKEN_DO){
+        advance(p); // consume 'do'
+        if(p -> current.type != TOKEN_LBRACE){
+            printf("Error: expected a '{' after 'do'.\n");
+            exit(1);
+        }
+
+        int count = 0;
+        ASTNode **body = parse_block(p, &count); // parse { ... }
+
+        if(p -> current.type != TOKEN_WHILE){
+            printf("Error: expected 'while' after do block. \n");
+            exit(1);
+        }
+
+        advance(p); // consume 'while'
+        if(p -> current.type != TOKEN_LPAREN){
+            printf("Error: expected a '(' after 'while' in do-while.\n");
+            exit(1);
+        }
+
+        advance(p); // consume '('
+        ASTNode *left = parse_expr(p);
+        char op[3];
+        if(p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
+        else if(p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
+        else if(p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
+        else {
+            printf("Error: expected comparision operator in do-while condition.\n");
+            exit(1);
+        }
+
+        advance(p); // consume the operator
+        ASTNode *right = parse_expr(p);
+        ASTNode *condition = make_compare(op, left, right);
+
+        if(p -> current.type != TOKEN_RPAREN){
+            printf("Error: expected ')' after do-while condition. \n");
+            exit(1);
+        }
+
+        advance(p);
+        return make_do_while(condition, body, count);
+
+    }
+
+    // variable reassignment: x = expr
+    if(p -> current.type == TOKEN_IDENTIFIER){
+        Token next = peek_next(p);
+        if(next.type == TOKEN_ASSIGN){
+            char name[64];
+            strncpy(name, p -> current.name, 64);
+            advance(p); // consume identifier
+            advance(p); // consume '='
+
+            if(!symtable_exists(&p -> symtable, name)){
+                printf("Error: undefined variable '%s'", name);
+                exit(1);
+            }
+
+            ASTNode *value = parse_expr(p);
+            return make_assign(name, value);
+        }
     }
 
     
