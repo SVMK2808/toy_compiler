@@ -152,14 +152,35 @@ Both `parse_block` and `parse_program` consume `;` if present but don't error if
 
 ---
 
-## Natural Next Steps (Day 10+)
+## Roadmap
 
-- `while` loops — `TOKEN_WHILE` is already in the lexer/token enum, just needs parser + codegen support
-- Variable reassignment (`x = expr` without `let`)
-- Nested `if` statements
-- Multiple test programs (move hardcoded string out of `main.c`)
-- String literals / print with string
-- User-defined functions
+### Near-term (Days 12–15)
+- `for` loops — now feasible since variable reassignment exists (Day 11)
+- User-defined functions — `fun name(args) { body }`, return values
+- Multiple test programs — move hardcoded source string out of `main.c`
+
+### Mid-term (Days 16–20)
+- Nested `if` and loops — structurally supported, worth explicit testing
+- String literals and string `print`
+- Negative number literals (unary minus)
+
+### Long-term — Verification-Aware Programming Language (VAPL)
+
+This compiler is a candidate stepping stone for a VAPL — a language where
+specs are written alongside code and a verification engine checks them.
+The simple, controlled grammar and owned AST make it more tractable than
+Python/C/Java for formal verification.
+
+Planned VAPL stages (after functions are implemented):
+
+| Stage | Feature | Notes |
+|-------|---------|-------|
+| 1 | `assert <cond>` statement | Runtime — halt with error if false. Easy. |
+| 2 | Loop invariants | `while (cond) invariant (expr) { }` — checked before + each iteration |
+| 3 | Pre/postconditions on functions | `fun f(x) requires x > 0 ensures result >= 1 { }` |
+| 4 | Static verification via Z3 | Compiler generates SMTLIB2 proof obligations, calls Z3 C API |
+
+References: Dafny, SPARK/Ada, Frama-C + ACSL, F*
 
 ---
 
