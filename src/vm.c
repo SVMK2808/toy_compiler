@@ -94,8 +94,8 @@ void vm_run(VM *vm){
             }
 
             case OP_LT: {
-                double a = vm -> stack[--vm -> stack_top];
                 double b = vm -> stack[--vm -> stack_top];
+                double a = vm -> stack[--vm -> stack_top];
                 vm -> stack[vm -> stack_top++] = (a < b) ? 1.0 : 0.0;
                 break;
             }

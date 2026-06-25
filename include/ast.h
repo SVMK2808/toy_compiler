@@ -11,6 +11,7 @@ typedef enum{
     NODE_COMPARE, //comparision >, <, ==
     NODE_WHILE, // for while loop
     NODE_DO_WHILE, // do{ .... }while(cond)
+    NODE_FOR,      // for(init; cond; incr){ body }
     NODE_ASSIGN    // for x = expr (reassignment of existing variable)
 }NodeType;
 
@@ -41,6 +42,7 @@ typedef struct ASTNode{
         char            name[64];
         struct ASTNode *value;
     }assign; // for NODE_ASSIGN
+
     struct {
         struct ASTNode *condition;  //the if condition
         struct ASTNode **then_body;  // the true branch
@@ -48,6 +50,14 @@ typedef struct ASTNode{
         struct ASTNode **else_body;  // else branch (can be NULL)
         int             else_count;  // to count number of statements in the false branch
     } if_else;          // for NODE_IF
+
+    struct{
+        struct ASTNode *init;   // initializer (let i = 0 or i = 0)
+        struct ASTNode *condition; // condition for the 'for' loop
+        struct ASTNode *increment; // increment (i = i + 1)
+        struct ASTNode **body;  // loop body statements
+        int            body_count;
+    } for_loop;     // for NODE_FOR
 
     struct {
         struct ASTNode *condition;  // the loop condition
@@ -88,6 +98,8 @@ ASTNode *make_assign(const char* name, ASTNode* value);
 ASTNode* make_while(ASTNode *condition, ASTNode **body, int body_count);
 // Do-while loop
 ASTNode* make_do_while(ASTNode *condition, ASTNode **body, int body_count);
+// For loop
+ASTNode* make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **body, int body_count);
 //Print AST
 void     print_ast(ASTNode* node, int depth);
 //Free the memory used for AST

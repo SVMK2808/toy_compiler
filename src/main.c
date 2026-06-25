@@ -10,8 +10,8 @@
 
 int main(void){
     Parser p;
-    parser_init(&p, "let x = 3; while (x > 0) { print x; x = x - 1 }");
-    
+    parser_init(&p, "for (let i = 0; i < 5; i = i + 1) { print i }");
+
 
     int count = 0;
     ASTNode **stmts = parse_program(&p, &count);

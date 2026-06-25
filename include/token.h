@@ -13,6 +13,7 @@ typedef enum {
     TOKEN_WHILE,
     TOKEN_PRINT,
     TOKEN_DO,
+    TOKEN_FOR,
 
     // Operators
     TOKEN_PLUS,
@@ -56,6 +57,7 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_PRINT: return "PRINT";
         case TOKEN_DO: return "DO";
+        case TOKEN_FOR: return "FOR";
 
         //Operators
         case TOKEN_PLUS: return "PLUS";

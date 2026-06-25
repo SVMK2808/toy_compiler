@@ -266,6 +266,59 @@ ASTNode *parse_statement(Parser *p){
         }
     }
 
+    // for (init; cond; incr) { body }
+    if(p -> current.type == TOKEN_FOR){
+        advance(p); // consume 'for'
+        if(p -> current.type != TOKEN_LPAREN){
+            printf("Error: expected '(' after 'for'. \n");
+            exit(1);
+        }
+        advance(p); // consume '('
+        // 1. initializer: let i = 0 or i = 0
+        ASTNode *init = parse_statement(p);
+        if(p -> current.type != TOKEN_SEMICOLON){
+            printf("Error: expected ';' after for initializer.\n");
+            exit(1);
+        }
+        advance(p);     // consume ';' 
+        // 2. condition: i < 10
+        ASTNode *left = parse_expr(p);
+        char op[3];
+        if      (p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
+        else if (p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
+        else if (p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
+        else {
+            printf("Error: expeected comparision operator in for condition.\n");
+            exit(1);
+        }
+
+        advance(p); // consume operator
+        ASTNode *right = parse_expr(p);
+        ASTNode *condition = make_compare(op, left, right);
+
+        if(p -> current.type != TOKEN_SEMICOLON){
+            printf("Error: expected ';' after for initializer.\n");
+            exit(1);
+        }
+        advance(p);     // consume ';'
+        
+        //3. increment i = i + 1
+        ASTNode *incr = parse_statement(p);
+        if(p -> current.type != TOKEN_RPAREN){
+            printf("Error: expected ')' after for increment.\n");
+            exit(1);
+        }
+        advance(p);     // consume ')'
+
+        // 4. body
+        int body_count = 0;
+        ASTNode **body = parse_block(p, &body_count);
+
+        return make_for(init, condition, incr, body, body_count);
+
+        
+    }
+
     
     // plain expression statement
     return parse_expr(p);

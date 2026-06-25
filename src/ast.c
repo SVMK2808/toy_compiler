@@ -90,6 +90,18 @@ ASTNode *make_do_while(ASTNode *condition, ASTNode **body, int body_count){
     node -> do_while.body_count = body_count;
     return node;
 }
+
+ASTNode *make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **body, int body_count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_FOR;
+    node -> for_loop.init = init;
+    node -> for_loop.condition = condition;
+    node -> for_loop.increment = incr;
+    node -> for_loop.body = body;
+    node -> for_loop.body_count = body_count;
+    return node;
+}
+
 void print_ast(ASTNode *node, int depth){
     if(node == NULL) return;
 
@@ -148,6 +160,23 @@ void print_ast(ASTNode *node, int depth){
         case NODE_ASSIGN:
             printf("ASSIGN(%s)\n", node -> assign.name);
             print_ast(node -> assign.value, depth + 1);
+            break;
+        
+        case NODE_FOR:
+            printf("FOR: \n");
+            for(int i = 0; i< depth + 1; i++) printf(" ");
+            printf("INIT: \n");
+            print_ast(node -> for_loop.init, depth + 2);
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("CONDITION: \n");
+            print_ast(node -> for_loop.condition, depth + 2);
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("INCREMENT: \n");
+            print_ast(node -> for_loop.increment, depth + 2);
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("BODY: \n");
+            for(int i = 0; i < node -> for_loop.body_count; i++)
+                print_ast(node -> for_loop.body[i], depth + 2);
             break;
 
         case NODE_WHILE:
@@ -214,6 +243,15 @@ void free_ast(ASTNode *node){
         
         case NODE_ASSIGN:
             free_ast(node -> assign.value);
+            break;
+
+        case NODE_FOR:
+            free_ast(node -> for_loop.init);
+            free_ast(node -> for_loop.condition);
+            free_ast(node -> for_loop.increment);
+            for(int i = 0; i < node -> for_loop.body_count; i++)
+                free_ast(node -> for_loop.body[i]);
+            free(node -> for_loop.body);
             break;
 
         case NODE_WHILE:
