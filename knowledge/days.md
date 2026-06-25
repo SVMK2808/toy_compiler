@@ -2,6 +2,36 @@
 
 ---
 
+## Day 12 — for loop + OP_LT bug fix ✅
+
+**Date:** 2026-06-25
+
+### What was added
+- `for (init; cond; incr) { body }` statement parsing and codegen
+- `TOKEN_FOR` keyword in lexer + token.h
+- `NODE_FOR` AST node: init, condition, increment, body, body_count
+- Codegen: emit init once, then `loop_start → condition → JMP_IF_FALSE → body → incr → JMP(loop_start)`
+- `init` and `incr` parsed via `parse_statement()` — handles both `let` and `x = expr`
+
+### Bug fixed
+- `OP_LT` in `vm.c` had `a`/`b` variable names swapped vs `OP_GT` convention — was checking `right < left` instead of `left < right`
+
+### Test input
+```
+for (let i = 0; i < 5; i = i + 1) { print i }
+```
+
+### Output
+```
+0.00
+1.00
+2.00
+3.00
+4.00
+```
+
+---
+
 ## Day 11 — do-while loop, variable reassignment ✅
 
 **Date:** 2026-06-24

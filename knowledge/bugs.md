@@ -4,6 +4,15 @@ A running log of all bugs found and fixed across the daily compiler build sessio
 
 ---
 
+## Day 12 — OP_LT operand order reversed
+
+**File:** `src/vm.c`  
+**Symptom:** `for` loop with `<` condition produced no output (condition evaluated false on first check even when true).  
+**Root cause:** `OP_LT` popped `a` (top of stack = right operand = 5.0) then `b` (left operand = 0.0) and checked `a < b` (i.e. `5.0 < 0.0`). Inconsistent with `OP_GT` which correctly pops `b` first (right) then `a` (left) and checks `a > b`.  
+**Fix:** Renamed the two pop variables in `OP_LT` to match `OP_GT` convention: `b = pop()` (right), `a = pop()` (left), check `a < b`.
+
+---
+
 ## Day ≤ 8 — Lexer infinite loop on identifiers
 
 **File:** `src/lexer.c`  
