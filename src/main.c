@@ -10,16 +10,20 @@
 
 int main(void){
     Parser p;
-       parser_init(&p, 
-        "fn fact(n) {\n"
-        "    if (n < 2) {\n"
-        "        return 1;\n"
-        "    }\n"
-        "    return n * fact(n - 1);\n"
+          parser_init(&p, 
+        "let g = 10;\n"
+        "fn update() {\n"
+        "    g = 20;\n"
         "}\n"
-        "let result = fact(5);\n"
-        "print result;\n"
+        "fn shadow(g) {\n"
+        "    print g;\n"
+        "}\n"
+        "shadow(5);\n"
+        "print g;\n"
+        "update();\n"
+        "print g;\n"
     );
+
 
     int count = 0;
     ASTNode **stmts = parse_program(&p, &count);

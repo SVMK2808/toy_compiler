@@ -76,7 +76,7 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
 
             case NODE_ASSIGN:
                 codegen(node -> assign.value, vm, in_func);
-                vm_emit(vm, in_func ? OP_STORE_LOCAL : OP_STORE, 0, node -> assign.name);
+                vm_emit(vm, OP_ASSIGN_VAR, 0, node -> assign.name);
                 break;
 
             case NODE_FOR: {

@@ -26,6 +26,7 @@ typedef enum {
     OP_RETURN, // return from function, leave return value on stack
     OP_LOAD_LOCAL, // load from the current call frame's local scope
     OP_STORE_LOCAL, // store into the current call frame's local scope
+    OP_ASSIGN_VAR, // assign to existing variable (looks up local scope first, then global)
     OP_HALT
 } OpCode;
 

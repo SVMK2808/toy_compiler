@@ -173,18 +173,36 @@ void vm_run(VM *vm){
 
             case OP_LOAD_LOCAL: {
                 CallFrame *frame = &vm -> frames[vm -> frame_top];
-                if(!symtable_exists(&frame -> locals, ins.name)){
-                    fprintf(stderr, "Error: undefined local variable '%s' \n", ins.name);
+                if(symtable_exists(&frame -> locals, ins.name)){
+                    vm -> stack[vm -> stack_top++] = symtable_get(&frame -> locals, ins.name);
+                }else if(symtable_exists(&vm -> symtable, ins.name)){
+                    vm -> stack[vm -> stack_top++] = symtable_get(&vm -> symtable, ins.name);
+                }else {
+                    fprintf(stderr, "Error: undefined variable '%s' \n", ins.name);
                     exit(1);
                 }
-
-                vm -> stack[vm -> stack_top++] = symtable_get(&frame->locals, ins.name);
                 break;
             }
 
             case OP_STORE_LOCAL: {
                 double val = vm -> stack[--vm -> stack_top];
                 symtable_set(&vm -> frames[vm -> frame_top].locals, ins.name, val);
+                break;
+            }
+
+
+            case OP_ASSIGN_VAR: {
+                double val = vm -> stack[--vm -> stack_top];
+                if(vm -> frame_top >= 0 && symtable_exists(&vm -> frames[vm -> frame_top].locals, ins.name)){
+                    //variable is in the local scope of the function
+                    symtable_set(&vm -> frames[vm -> frame_top].locals, ins.name, val);
+                }else if(symtable_exists(&vm -> symtable, ins.name)){
+                    // variable has a global scope
+                    symtable_set(&vm -> symtable, ins.name, val);
+                }else {
+                    fprintf(stderr, "Error: undefined variable for assignment '%s' \n", ins.name);
+                    exit(1);
+                }
                 break;
             }
                 
