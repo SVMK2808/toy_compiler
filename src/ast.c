@@ -102,6 +102,36 @@ ASTNode *make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **bo
     return node;
 }
 
+ASTNode *make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_FUNC_DEF;
+    strncpy(node -> func_def.name, name, 64);
+    node -> func_def.param_count = param_count;
+    for(int i = 0; i < param_count; i++){
+        strncpy(node -> func_def.params[i], params[i], 64);
+    }
+    node -> func_def.body = body;
+    node -> func_def.body_count = body_count;
+    return node;
+}
+
+ASTNode *make_func_call(const char *name, ASTNode **args, int arg_count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_FUNC_CALL;
+    strncpy(node -> func_call.name, name, 64);
+    node -> func_call.args = args;
+    node -> func_call.arg_count = arg_count;
+    return node;
+}
+
+ASTNode *make_return(ASTNode *value){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_RETURN;
+    node -> ret_val = value;
+    return node;
+
+}
+
 void print_ast(ASTNode *node, int depth){
     if(node == NULL) return;
 
@@ -203,6 +233,28 @@ void print_ast(ASTNode *node, int depth){
             print_ast(node -> do_while.condition, depth + 2);
             break;
 
+        case NODE_FUNC_DEF:
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("FUNC_DEF(%s) params = [", node -> func_def.name);
+            for(int i = 0; i < node -> func_def.param_count; i++)
+                printf("%s%s", node -> func_def.params[i], i < node -> func_def.param_count - 1 ? ", ": "");
+            printf("]\n");
+            for(int i = 0; i < node -> func_def.body_count; i++)
+                print_ast(node -> func_def.body[i], depth + 1);
+            break;
+        
+        case NODE_FUNC_CALL:
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("FUNC_CALL(%s)\n", node -> func_call.name);
+            for(int i = 0; i < node -> func_call.arg_count; i++)
+                print_ast(node -> func_call.args[i], depth + 2);
+            break;
+
+        case NODE_RETURN:
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("RETURN\n");
+            print_ast(node -> ret_val, depth + 1);
+            break;
     }
     
     
@@ -266,6 +318,22 @@ void free_ast(ASTNode *node){
                 free_ast(node -> do_while.body[i]);
             free(node -> do_while.body);
             free_ast(node -> do_while.condition);
+            break;
+
+        case NODE_FUNC_DEF:
+            for(int i = 0; i < node -> func_def.body_count; i++)
+                free_ast(node -> func_def.body[i]);
+            free(node -> func_def.body);
+            break;
+        
+        case NODE_FUNC_CALL:
+            for(int i = 0; i< node -> func_call.arg_count; i++)
+                free_ast(node -> func_call.args[i]);
+            free(node -> func_call.args);
+            break;
+        
+        case NODE_RETURN:
+            free_ast(node -> ret_val);
             break;
 
         /*These two are just to silence the compiler warning. */

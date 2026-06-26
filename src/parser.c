@@ -36,6 +36,32 @@ ASTNode *parse_factor(Parser *p){
     }
 
     if(p -> current.type == TOKEN_IDENTIFIER){
+        Token next = peek_next(p);
+        if(next.type == TOKEN_LPAREN){
+            char name[64];
+            strncpy(name, p -> current.name, 64);
+            advance(p); // consume identifier
+            advance(p); // consume '('
+
+            ASTNode **args = malloc(sizeof(ASTNode*) * 8);
+            int arg_count = 0;
+            if(p -> current.type != TOKEN_RPAREN){
+                args[arg_count++] = parse_expr(p);
+                while(p -> current.type == TOKEN_COMMA){
+                    advance(p);     // consume ','
+                    args[arg_count++] = parse_expr(p);
+                }
+            }
+
+            if(p -> current.type != TOKEN_RPAREN){
+                fprintf(stderr, "Error: expected ')' in function call. \n");
+                exit(1);
+            }
+            advance(p); // consume ')'
+            return make_func_call(name, args, arg_count);
+        }
+
+        // regular variable reference
         if(!symtable_exists(&p -> symtable, p -> current.name)){
             printf("Error: Undefined variable: (%s)\n", p -> current.name);
             exit(1);
@@ -87,6 +113,73 @@ ASTNode **parse_block(Parser *p, int *count){
           return stmts;
 }
 ASTNode *parse_statement(Parser *p){
+    // fn name(p1, p2) { <body> }
+    if(p -> current.type == TOKEN_FN){
+        advance(p); // consume 'fn'
+        if(p -> current.type != TOKEN_IDENTIFIER){
+            printf("Error: expected function name after 'fn'.\n");
+            exit(1);
+        }
+
+        char name[64];
+        strncpy(name, p -> current.name, 64);
+        advance(p);
+
+        if(p -> current.type != TOKEN_LPAREN){
+            printf("Error: expected '(' after function name.\n");
+            exit(1);
+        }
+
+        advance(p); // consume '('
+        char params[8][64];
+        int param_count = 0;
+        if(p -> current.type != TOKEN_RPAREN){
+            if(p -> current.type != TOKEN_IDENTIFIER){
+                printf("Error: expected parameter name.\n");
+                exit(1);
+            }
+
+            strncpy(params[param_count++], p -> current.name, 64);
+            advance(p);
+
+            while(p -> current.type == TOKEN_COMMA){
+                advance(p); // consume ','
+                if(p -> current.type != TOKEN_IDENTIFIER){
+                    printf("Error: expected parameter name after ','\n");
+                    exit(1);
+                }
+                strncpy(params[param_count++], p -> current.name, 64);
+                advance(p);
+            }
+        }
+
+        if(p -> current.type != TOKEN_RPAREN){
+            printf("Error: expected ')' after parameters. \n");
+            exit(1);
+        }
+        advance(p);  // consume ')'
+
+        // Backup symtable for local scope of function parameters/locals
+        SymTable saved_table = p -> symtable;
+
+        // Register parameters in local parser symtable 
+        for(int i = 0; i < param_count; i++){
+            symtable_set(&p -> symtable, params[i], 0);
+        }
+        int body_count = 0;
+        ASTNode **body = parse_block(p, &body_count);
+
+        // Restore symtable (discarding local parameters and variables)
+        p -> symtable = saved_table;
+        return make_func_def(name, params, param_count, body, body_count);
+    }
+
+    // return <expr>
+    if(p -> current.type == TOKEN_RETURN){
+        advance(p); // consume 'return' 
+        ASTNode *ret_val = parse_expr(p);
+        return make_return(ret_val);
+    }
     // let x = <expr>
     if(p -> current.type == TOKEN_LET){
         advance(p); // consume "let"

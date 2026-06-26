@@ -12,7 +12,10 @@ typedef enum{
     NODE_WHILE, // for while loop
     NODE_DO_WHILE, // do{ .... }while(cond)
     NODE_FOR,      // for(init; cond; incr){ body }
-    NODE_ASSIGN    // for x = expr (reassignment of existing variable)
+    NODE_ASSIGN,    // for x = expr (reassignment of existing variable)
+    NODE_FUNC_DEF, // fn name(params) { body }
+    NODE_FUNC_CALL, // name(args)
+    NODE_RETURN,    // return <expr>
 }NodeType;
 
 typedef struct ASTNode{
@@ -70,6 +73,22 @@ typedef struct ASTNode{
         struct ASTNode **body;      // statments in the loop body
         int             body_count; // number of statements in the loop body
     }do_while;          // for NODE_DO_WHILE
+
+    struct{
+        char           name[64]; // function name
+        char           params[8][64]; // 2D array for params
+        int            param_count;  // number of parameters
+        struct ASTNode **body;  //function definition
+        int            body_count; // number of statements in the body
+    } func_def;         // for NODE_FUNC_DEF
+
+    struct{
+        char           name[64];    // name of the function in the function call
+        struct ASTNode **args;      // arguments for func call
+        int            arg_count;   // number of arguments in the function
+    }func_call;        // for NODE_FUNC_CALL
+
+    struct ASTNode *ret_val;  // for NODE_RETURN
     struct ASTNode *print;      // for NODE_PRINT - expression to print
     
     };
@@ -100,6 +119,12 @@ ASTNode* make_while(ASTNode *condition, ASTNode **body, int body_count);
 ASTNode* make_do_while(ASTNode *condition, ASTNode **body, int body_count);
 // For loop
 ASTNode* make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **body, int body_count);
+// for function definition
+ASTNode* make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count);
+// for function call
+ASTNode* make_func_call(const char *name, ASTNode **args, int arg_count);
+// for return statment
+ASTNode* make_return(ASTNode *value);
 //Print AST
 void     print_ast(ASTNode* node, int depth);
 //Free the memory used for AST

@@ -10,8 +10,16 @@
 
 int main(void){
     Parser p;
-    parser_init(&p, "for (let i = 0; i < 5; i = i + 1) { print i }");
-
+       parser_init(&p, 
+        "fn fact(n) {\n"
+        "    if (n < 2) {\n"
+        "        return 1;\n"
+        "    }\n"
+        "    return n * fact(n - 1);\n"
+        "}\n"
+        "let result = fact(5);\n"
+        "print result;\n"
+    );
 
     int count = 0;
     ASTNode **stmts = parse_program(&p, &count);
@@ -26,7 +34,7 @@ int main(void){
     VM vm;
     vm_init(&vm);
     for(int i = 0; i < count; i++){
-        codegen(stmts[i], &vm);
+        codegen(stmts[i], &vm, false);
     }
     vm_emit(&vm, OP_HALT, 0, NULL);
 

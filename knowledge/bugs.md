@@ -4,6 +4,36 @@ A running log of all bugs found and fixed across the daily compiler build sessio
 
 ---
 
+## Day 13 — VM local stack initialization & compilation typos
+
+### 1. VM stack initialization
+- **File:** `src/vm.c`
+- **Symptom:** Running the compiled compiler binary produced a `zsh: bus error ./compiler`.
+- **Root cause:** `vm_init` was not updated to initialize the new fields `frame_top` and `func_table.count`. Since it was initialized with garbage memory on the stack, `OP_CALL` was trying to write to `vm->frames[vm->frame_top]` where `frame_top` was a random massive integer, triggering a segmentation fault/bus error.
+- **Fix:** Added `vm->frame_top = -1;` and `vm->func_table.count = 0;` to `vm_init`.
+
+### 2. Lexer keyword vs Identifier check in parser
+- **File:** `src/parser.c`
+- **Symptom:** Semicolon and expression parsing behaved incorrectly inside and outside functions.
+- **Root cause:** In `parse_statement`, the return check was testing `p -> current.type == TOKEN_IDENTIFIER` instead of `TOKEN_RETURN`, which parsed every variable/identifier statement as a return statement.
+- **Fix:** Corrected the check to `p -> current.type == TOKEN_RETURN`.
+
+### 3. codegen.c NODE_LET local opcode typo
+- **File:** `src/codegen.c`
+- **Symptom:** Variable declarations (`let`) inside functions did not work correctly or failed to store variables in the local call frame.
+- **Root cause:** The ternary expression in `NODE_LET` emitted `OP_LOAD_LOCAL` instead of `OP_STORE_LOCAL` when `in_func` was true: `vm_emit(vm, in_func ? OP_LOAD_LOCAL: OP_STORE, 0, node -> let.name);`.
+- **Fix:** Changed to `OP_STORE_LOCAL`.
+
+### 4. ast.c print_ast and free_ast recursive traversal bugs
+- **File:** `src/ast.c`
+- **Symptom:** Printing the AST for functions iterated over parameter count instead of body count. Deallocating function memory caused leaks/invalid frees.
+- **Root cause:** 
+  1. `print_ast` for `NODE_FUNC_DEF` printed the body using `i < node -> func_def.param_count` instead of `body_count`.
+  2. `free_ast` for `NODE_RETURN` used `free(node -> ret_val)` directly instead of recursively calling `free_ast(node -> ret_val)`.
+- **Fix:** Fixed the loop condition in `print_ast` to use `body_count`, and updated `free_ast` to recursively free the return value ASTNode.
+
+---
+
 ## Day 12 — OP_LT operand order reversed
 
 **File:** `src/vm.c`  

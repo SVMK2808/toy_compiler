@@ -14,6 +14,8 @@ typedef enum {
     TOKEN_PRINT,
     TOKEN_DO,
     TOKEN_FOR,
+    TOKEN_FN,
+    TOKEN_RETURN,
 
     // Operators
     TOKEN_PLUS,
@@ -31,6 +33,7 @@ typedef enum {
     TOKEN_LBRACE, // {
     TOKEN_RBRACE, // }
     TOKEN_SEMICOLON, // ;
+    TOKEN_COMMA, // ,
     
 
     // Special
@@ -58,6 +61,8 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_PRINT: return "PRINT";
         case TOKEN_DO: return "DO";
         case TOKEN_FOR: return "FOR";
+        case TOKEN_FN: return "FN";
+        case TOKEN_RETURN: return "RETURN";
 
         //Operators
         case TOKEN_PLUS: return "PLUS";
@@ -75,6 +80,7 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_LBRACE: return "LBRACE";
         case TOKEN_RBRACE: return "RBRACE";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+        case TOKEN_COMMA: return "COMMA";
 
         //Special characters
         case TOKEN_EOF: return "EOF";

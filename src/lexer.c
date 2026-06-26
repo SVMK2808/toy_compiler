@@ -46,6 +46,8 @@ Token lexer_next(Lexer *l){
         else if(strcmp(t.name, "print") == 0) t.type = TOKEN_PRINT;
         else if(strcmp(t.name, "do") == 0) t.type = TOKEN_DO;
         else if(strcmp(t.name, "for") == 0) t.type = TOKEN_FOR;
+        else if(strcmp(t.name, "fn") == 0) t.type = TOKEN_FN;
+        else if(strcmp(t.name, "return") == 0) t.type = TOKEN_RETURN;
 
         return t;
     }
@@ -84,6 +86,7 @@ Token lexer_next(Lexer *l){
         case '{' : return make_token(TOKEN_LBRACE);
         case '}' : return make_token(TOKEN_RBRACE);
         case ';' : return make_token(TOKEN_SEMICOLON);
+        case ',' : return make_token(TOKEN_COMMA);
         default : return make_token(TOKEN_UNKNOWN);
 
     }

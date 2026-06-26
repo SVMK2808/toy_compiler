@@ -6,6 +6,8 @@
 void vm_init(VM *vm){
     vm -> code_count = 0;
     vm -> stack_top = 0;
+    vm -> frame_top = -1;
+    vm -> func_table.count = 0;
     symtable_init(&vm -> symtable);
 }
 
@@ -19,6 +21,15 @@ void vm_emit(VM *vm, OpCode op, double operand, const char* name){
     }
     vm -> code_count++;
 
+}
+
+void vm_register_func(VM *vm, const char *name, int code_start, int param_count, char params[][64]){
+    FuncDef *f = &vm -> func_table.funcs[vm -> func_table.count++];
+    strncpy(f -> name, name, 64);
+    f -> code_start = code_start;
+    f -> param_count = param_count;
+    for(int i = 0; i < param_count; i++)
+        strncpy(f -> params[i], params[i], 64);
 }
 
 void vm_run(VM *vm){
@@ -117,6 +128,63 @@ void vm_run(VM *vm){
                 if(val == 0.0){
                     i = (int)ins.operand - 1;
                 }
+                break;
+            }
+
+            case OP_CALL: {
+                // find the function by name
+                FuncDef *fn = NULL;
+                for(int j = 0; j < vm -> func_table.count; j++){
+                    if(strcmp(vm -> func_table.funcs[j].name, ins.name) == 0){
+                        fn = &vm -> func_table.funcs[j];
+                        break;
+                    }
+                }
+
+                if(!fn){
+                    fprintf(stderr, "Error: undefined function '%s' \n", ins.name);
+                    exit(1);
+                }
+
+                // push a new call frame
+                vm -> frame_top++;
+                CallFrame *frame = &vm -> frames[vm -> frame_top];
+                frame -> return_addr = i + 1;
+                symtable_init(&frame -> locals);
+
+                // pop args right - to - left so param[0] gets the leftmost arg
+                for(int j = fn -> param_count - 1; j >= 0; j--){
+                    double val = vm -> stack[--vm -> stack_top];
+                    symtable_set(&frame -> locals, fn -> params[j], val);
+                }
+
+                i = fn -> code_start - 1; // -1 because loop will i++
+                break;
+            }
+
+            case OP_RETURN: {
+                double ret = vm -> stack[--vm -> stack_top]; // grab return value
+                int ret_addr = vm -> frames[vm -> frame_top].return_addr;
+                vm -> frame_top--; // pop the call frame
+                vm -> stack[vm -> stack_top++] = ret; //put the return value back
+                i = ret_addr - 1; // -1 because loop will i++
+                break;
+            }
+
+            case OP_LOAD_LOCAL: {
+                CallFrame *frame = &vm -> frames[vm -> frame_top];
+                if(!symtable_exists(&frame -> locals, ins.name)){
+                    fprintf(stderr, "Error: undefined local variable '%s' \n", ins.name);
+                    exit(1);
+                }
+
+                vm -> stack[vm -> stack_top++] = symtable_get(&frame->locals, ins.name);
+                break;
+            }
+
+            case OP_STORE_LOCAL: {
+                double val = vm -> stack[--vm -> stack_top];
+                symtable_set(&vm -> frames[vm -> frame_top].locals, ins.name, val);
                 break;
             }
                 
