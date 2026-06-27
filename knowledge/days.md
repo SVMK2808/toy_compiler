@@ -40,7 +40,7 @@ OUTPUT:
 
 ---
 
-## Day 13 — User-defined functions, return statements & call frames ✅
+## Day 13 — User-defined functions, local/global scoping & call frames ✅
 
 **Date:** 2026-06-26
 
@@ -50,50 +50,57 @@ OUTPUT:
 - New tokens: `TOKEN_FN`, `TOKEN_RETURN`, `TOKEN_COMMA`.
 - New AST nodes: `NODE_FUNC_DEF`, `NODE_FUNC_CALL`, `NODE_RETURN`.
 - New VM structures: `CallFrame` (for tracking local symbol scopes and return addresses), `FuncDef`, and `FuncTable`.
-- New VM opcodes: `OP_CALL` (resolves function start, pushes CallFrame, binds parameters), `OP_RETURN` (pops CallFrame, pushes return value, jumps back), `OP_LOAD_LOCAL`/`OP_STORE_LOCAL` (local symbol scopes).
-- Codegen: updated signature to thread an `in_func` context boolean. Separates global symbol storage (`OP_LOAD`/`OP_STORE`) from function local stack/registers (`OP_LOAD_LOCAL`/`OP_STORE_LOCAL`).
+- New VM opcodes: `OP_CALL`, `OP_RETURN`, `OP_LOAD_LOCAL` (searches locals first, then falls back to globals), `OP_STORE_LOCAL` (declares local variable), and `OP_ASSIGN_VAR` (resolves variable scope dynamically for reassignments).
+- Codegen: updated signature to thread an `in_func` context boolean. Uses `OP_ASSIGN_VAR` for all variable reassignments.
+- Scoping rules verified:
+  1. Reading a global variable from inside a function body.
+  2. Overwriting/reassigning a global variable from inside a function body.
+  3. Shadowing global variables using local parameters (leaving globals untouched).
 
-### Test input (Recursive Factorial)
+### Test input (Scoping & Shadowing)
 ```c
-fn fact(n) {
-    if (n < 2) {
-        return 1;
-    }
-    return n * fact(n - 1);
+let g = 10;
+fn update() {
+    g = 20;
 }
-let result = fact(5);
-print result;
+fn shadow(g) {
+    print g;
+}
+shadow(5);
+print g;
+update();
+print g;
 ```
 
 ### Output
 ```
 AST: 
- FUNC_DEF(fact) params = [n]
-  IF
-  CONDITION:
-      COMPARE(<):
-        IDENT(n)
-        NUMBER(2)
-  THEN: 
-          RETURN
-        NUMBER(1)
-    RETURN
-    BINOP(*)
-      IDENT(n)
-          FUNC_CALL(fact)
-          BINOP(-)
-            IDENT(n)
-            NUMBER(1)
+LET(g)
+  NUMBER(10)
 
-LET(result)
-    FUNC_CALL(fact)
-      NUMBER(5)
+ FUNC_DEF(update) params = []
+  ASSIGN(g)
+    NUMBER(20)
+
+ FUNC_DEF(shadow) params = [g]
+  PRINT
+    IDENT(g)
+
+ FUNC_CALL(shadow)
+    NUMBER(5)
 
 PRINT
-  IDENT(result)
+  IDENT(g)
+
+ FUNC_CALL(update)
+
+PRINT
+  IDENT(g)
 
 OUTPUT: 
-120.00
+5.00
+10.00
+20.00
 ```
 
 ---
