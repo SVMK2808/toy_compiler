@@ -34,12 +34,89 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
             }
             break;
 
+        case NODE_UNARY:
+            if(node -> unary.op == '-'){
+                // Unary arithmetic negation: compile expr as (0.0 - expr)
+                vm_emit(vm, OP_PUSH, 0.0, NULL);
+                codegen(node -> unary.operand, vm, in_func);
+                vm_emit(vm, OP_SUB, 0, NULL);
+            }else if(node -> unary.op == '!'){
+                // Unary logical negation
+                codegen(node -> unary.operand, vm, in_func);
+                vm_emit(vm, OP_NOT, 0, NULL);
+            }
+            break;
+            
+        case NODE_LOGICAL: {
+            if(strcmp(node -> logical.op, "&&") == 0){
+                //1. Evaluate left operand
+                codegen(node -> logical.left, vm, in_func);
+                //2. Jump to false_label if left is false
+                int jmp_false1 = vm -> code_count;
+                vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
+                //3. Evaluate right operand
+                codegen(node -> logical.right, vm, in_func);
+
+                //4. Jump to false_label if right is false
+                int jmp_false2 = vm -> code_count;
+                vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
+
+                //5. If both true, push 1.0 and jump to end
+                vm_emit(vm, OP_PUSH, 1.0, NULL);
+                int jmp_end = vm -> code_count;
+                vm_emit(vm, OP_JMP, 0, NULL);
+
+                //6. Define false label here 
+                vm -> code[jmp_false1].operand = vm -> code_count;
+                vm -> code[jmp_false2].operand = vm -> code_count;
+                vm_emit(vm, OP_PUSH, 0.0, NULL);
+
+                //7. Define end_label here
+                vm -> code[jmp_end].operand = vm -> code_count;
+            }else if(strcmp(node -> logical.op, "||") == 0){
+                // 1. Evaluate left operand
+                codegen(node -> logical.left, vm, in_func);
+                //2. Jump to eval_b_label if left is false
+                int jmp_eval_b = vm -> code_count;
+                vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
+
+                //3. If left is true, push 1.0 and jump to end
+                vm_emit(vm, OP_PUSH, 1.0, NULL);
+                int jmp_end1 = vm -> code_count;
+                vm_emit(vm, OP_JMP, 0, NULL);
+
+                //4. eval_b_label: evaluate right operand
+                vm -> code[jmp_eval_b].operand = vm -> code_count;
+                codegen(node -> logical.right, vm, in_func);
+
+                //5. Jump to false_label if right is false
+                int jmp_false = vm -> code_count;
+                vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
+
+                //6. If right is true, push 1.0 and jump to end
+                vm_emit(vm, OP_PUSH, 1.0, NULL);
+                int jmp_end2 = vm -> code_count;
+                vm_emit(vm, OP_JMP, 0, NULL);
+
+                //7. false label: push 0.0
+                vm -> code[jmp_false].operand = vm -> code_count;
+                vm_emit(vm, OP_PUSH, 0.0, NULL);
+
+                //8. end label (bpth successful ends jump here, after the 0.0 push)
+                vm -> code[jmp_end1].operand = vm -> code_count;
+                vm -> code[jmp_end2].operand = vm -> code_count;
+            }
+            break;
+        }
+
             case NODE_COMPARE:
                 codegen(node -> compare.left, vm, in_func);
                 codegen(node -> compare.right, vm, in_func);
                 if     (strcmp(node -> compare.op, ">") == 0) vm_emit(vm, OP_GT, 0, NULL);
                 else if(strcmp(node -> compare.op, "<") == 0) vm_emit(vm, OP_LT, 0, NULL);
                 else if(strcmp(node -> compare.op, "==") == 0) vm_emit(vm, OP_EQ, 0, NULL);
+                else if(strcmp(node -> compare.op, "<=") == 0) vm_emit(vm, OP_LE, 0, NULL);
+                else if(strcmp(node -> compare.op, ">=") == 0) vm_emit(vm, OP_GE, 0, NULL);
                 break;
 
             case NODE_IF:{

@@ -10,18 +10,17 @@
 
 int main(void){
     Parser p;
-          parser_init(&p, 
-        "let g = 10;\n"
-        "fn update() {\n"
-        "    g = 20;\n"
+    parser_init(&p, 
+        "let x = 5;\n"
+        "let y = 10;\n"
+        "let cond = (x < y) && (y >= 10) && !false;\n"
+        "if (cond) {\n"
+        "    print 1;\n"
+        "} else {\n"
+        "    print 0;\n"
         "}\n"
-        "fn shadow(g) {\n"
-        "    print g;\n"
-        "}\n"
-        "shadow(5);\n"
-        "print g;\n"
-        "update();\n"
-        "print g;\n"
+        "print -x;\n"
+        "print (x > 10) || false;\n"
     );
 
 

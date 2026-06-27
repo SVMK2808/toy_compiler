@@ -206,6 +206,25 @@ void vm_run(VM *vm){
                 break;
             }
                 
+            case OP_LE: {
+                double b = vm -> stack[--vm -> stack_top];
+                double a = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (a <= b) ? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_GE: {
+                double b = vm -> stack[--vm -> stack_top];
+                double a = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (a >= b) ? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_NOT: {
+                double val = vm -> stack[--vm -> stack_top];
+                vm -> stack[vm -> stack_top++] = (val == 0.0) ? 1.0 : 0.0;
+                break;
+            }
             case OP_HALT:
                 return;
                 

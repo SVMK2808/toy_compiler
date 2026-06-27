@@ -48,6 +48,8 @@ Token lexer_next(Lexer *l){
         else if(strcmp(t.name, "for") == 0) t.type = TOKEN_FOR;
         else if(strcmp(t.name, "fn") == 0) t.type = TOKEN_FN;
         else if(strcmp(t.name, "return") == 0) t.type = TOKEN_RETURN;
+        else if(strcmp(t.name, "true") == 0) t.type = TOKEN_TRUE;
+        else if(strcmp(t.name, "false") == 0) t.type = TOKEN_FALSE;
 
         return t;
     }
@@ -67,6 +69,26 @@ Token lexer_next(Lexer *l){
     l -> pos++;
 
     //two character operators
+    if(c == '&' && l -> src[l -> pos] == '&'){
+        l -> pos++;
+        return make_token(TOKEN_AND);
+    }
+
+    if(c == '|' && l -> src[l -> pos] == '|'){
+        l -> pos++;
+        return make_token(TOKEN_OR);
+    }
+
+    if(c == '<' && l -> src[l -> pos] == '='){
+        l -> pos++;
+        return make_token(TOKEN_LE);
+    }
+
+    if(c == '>' && l -> src[l -> pos] == '='){
+        l -> pos++;
+        return make_token(TOKEN_GE);
+    }
+
     if(c == '=' && l -> src[l-> pos] == '='){
         l->pos++;
         return make_token(TOKEN_EQ);
@@ -87,6 +109,7 @@ Token lexer_next(Lexer *l){
         case '}' : return make_token(TOKEN_RBRACE);
         case ';' : return make_token(TOKEN_SEMICOLON);
         case ',' : return make_token(TOKEN_COMMA);
+        case '!' : return make_token(TOKEN_NOT);
         default : return make_token(TOKEN_UNKNOWN);
 
     }

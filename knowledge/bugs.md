@@ -4,6 +4,30 @@ A running log of all bugs found and fixed across the daily compiler build sessio
 
 ---
 
+## Day 14 — Grammar chain integration & Logical codegen jumps
+
+### 1. parse_term bypassing unary parsing
+- **File:** `src/parser.c`
+- **Symptom:** Compiling and running the compiler produced `Error: unexpected token:` pointing to `-` (in `-x`) or `!` (in `!false`).
+- **Root cause:** `parse_term` was still recursively calling `parse_factor(p)` directly, completely skipping the newly introduced `parse_unary(p)` parsing layer. The parser was unable to associate unary operators with factors.
+- **Fix:** Changed all recursive lookup calls in `parse_term` to call `parse_unary(p)` instead of `parse_factor(p)`.
+
+### 2. Typo in parser.c function naming
+- **File:** `src/parser.c`
+- **Symptom:** Linker error `Undefined symbols for architecture arm64: _parse_logical_and`.
+- **Root cause:** The implementation of the parser grammar function was named `make_logical_and` instead of `parse_logical_and`.
+- **Fix:** Renamed the function to `parse_logical_and`.
+
+### 3. Missing push and label updates in logical OR (||) codegen
+- **File:** `src/codegen.c`
+- **Symptom:** Logical OR expressions evaluated incorrectly or caused jump errors.
+- **Root cause:**
+  - The `NODE_LOGICAL` case for `||` was missing the `OP_PUSH 0.0` instruction in the false path.
+  - The jumps for successful paths (`jmp_end1` and `jmp_end2`) were not being patched to point past the false path's `OP_PUSH 0.0`.
+- **Fix:** Emitted `OP_PUSH 0.0` in the false path and patched both `jmp_end1` and `jmp_end2` to point to the instruction index immediately following the `0.0` push.
+
+---
+
 ## Day 13 — VM local stack initialization & compilation typos
 
 ### 1. VM stack initialization

@@ -4,6 +4,8 @@
 typedef enum{
     NODE_NUMBER, //a literal number eg. 42
     NODE_BINOP, // a binary operation eg. +, -, *,/
+    NODE_LOGICAL, // for && and || 
+    NODE_UNARY, // for ! and unary negation -
     NODE_IDENT, // variable reference eg. x
     NODE_LET,   // variable declaration eg. let x = 5
     NODE_PRINT,  // print statement
@@ -29,6 +31,16 @@ typedef struct ASTNode{
             struct ASTNode* right;
         }binop;           // used when type == NODE_BINOP
 
+        struct {
+            char            op[3]; // "&&" or "||"
+            struct ASTNode* left;
+            struct ASTNode* right;
+        } logical;            // for NODE_LOGICAL
+
+        struct{
+            char            op;  // '!' or '-'
+            struct ASTNode* operand; 
+        }unary;             // for NODE_UNARY
         char ident[64];       // for NODE_IDENT - variable name
     struct {
         char            name[64];   //variable name
@@ -99,6 +111,10 @@ ASTNode* make_ident(const char* name);
 ASTNode* make_number(double value);
 // Arithmetic Operators - '-', '+', '*', '/'
 ASTNode* make_binop(char op, ASTNode* left, ASTNode* right);
+// Logical operators - "&&" or "||"
+ASTNode* make_logical(const char* op, ASTNode *left, ASTNode *right);
+// Unary Operators - '!' or '-'
+ASTNode* make_unary(char op, ASTNode *operand);
 
 // Keyword 'let'
 ASTNode* make_let(const char *name,ASTNode *value);

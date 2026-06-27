@@ -132,6 +132,23 @@ ASTNode *make_return(ASTNode *value){
 
 }
 
+ASTNode *make_logical(const char *op, ASTNode *left, ASTNode *right){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_LOGICAL;
+    node -> logical.left = left;
+    node -> logical.right = right;
+    strncpy(node -> logical.op, op, 3);
+    return node;
+}
+
+ASTNode *make_unary(char op, ASTNode *operand){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_UNARY;
+    node -> unary.op = op;
+    node -> unary.operand = operand;
+    return node;
+}
+
 void print_ast(ASTNode *node, int depth){
     if(node == NULL) return;
 
@@ -160,6 +177,19 @@ void print_ast(ASTNode *node, int depth){
             printf("BINOP(%c)\n", node -> binop.op);
             print_ast(node -> binop.left, depth + 1);
             print_ast(node -> binop.right, depth + 1);
+            break;
+
+        case NODE_LOGICAL:
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("LOGICAL(%s): \n", node -> logical.op);
+            print_ast(node -> logical.left, depth + 1);
+            print_ast(node -> logical.right, depth + 1);
+            break;
+        
+        case NODE_UNARY:
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("UNARY(%c): \n", node -> unary.op);
+            print_ast(node -> unary.operand, depth + 1);
             break;
 
         case NODE_COMPARE:
@@ -275,6 +305,15 @@ void free_ast(ASTNode *node){
         case NODE_BINOP:
             free_ast(node -> binop.left);
             free_ast(node -> binop.right);
+            break;
+
+        case NODE_LOGICAL:
+            free_ast(node -> logical.left);
+            free_ast(node -> logical.right);
+            break;
+        
+        case NODE_UNARY:
+            free_ast(node -> unary.operand);
             break;
 
         case NODE_COMPARE:

@@ -16,6 +16,8 @@ typedef enum {
     TOKEN_FOR,
     TOKEN_FN,
     TOKEN_RETURN,
+    TOKEN_TRUE,
+    TOKEN_FALSE,
 
     // Operators
     TOKEN_PLUS,
@@ -26,6 +28,11 @@ typedef enum {
     TOKEN_LT, // <
     TOKEN_GT, // >
     TOKEN_EQ, // ==
+    TOKEN_LE, // <=
+    TOKEN_GE, // >=
+    TOKEN_AND, // &&
+    TOKEN_OR, // ||
+    TOKEN_NOT, // !
 
     // Punctuation
     TOKEN_LPAREN,
@@ -63,6 +70,8 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_FOR: return "FOR";
         case TOKEN_FN: return "FN";
         case TOKEN_RETURN: return "RETURN";
+        case TOKEN_TRUE: return "TRUE";
+        case TOKEN_FALSE: return "FALSE";
 
         //Operators
         case TOKEN_PLUS: return "PLUS";
@@ -73,6 +82,11 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_LT: return "LT";
         case TOKEN_GT: return "GT";
         case TOKEN_EQ: return "EQ";
+        case TOKEN_LE: return "LE";
+        case TOKEN_GE: return "GE";
+        case TOKEN_AND: return "AND";
+        case TOKEN_OR: return "OR";
+        case TOKEN_NOT: return "NOT";
 
         //Punctuation
         case TOKEN_LPAREN: return "LPAREN";

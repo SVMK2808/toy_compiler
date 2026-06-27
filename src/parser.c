@@ -35,6 +35,17 @@ ASTNode *parse_factor(Parser *p){
         return make_number(val);
     }
 
+    if(p -> current.type == TOKEN_TRUE){
+        advance(p);
+        return make_number(1.0);
+    }
+
+    if(p -> current.type == TOKEN_FALSE){
+        advance(p);
+        return make_number(0.0);
+    }
+
+
     if(p -> current.type == TOKEN_IDENTIFIER){
         Token next = peek_next(p);
         if(next.type == TOKEN_LPAREN){
@@ -221,21 +232,9 @@ ASTNode *parse_statement(Parser *p){
         advance(p);     // consume '('
 
         // parse condition
-        ASTNode *left = parse_expr(p);
+        ASTNode *condition = parse_expr(p);
 
-        //expect comparision operator
-        char op[3];
-        if(p -> current.type == TOKEN_GT)       strncpy(op ,">", 3);
-        else if(p -> current.type == TOKEN_LT)  strncpy(op ,"<", 3);
-        else if(p -> current.type == TOKEN_EQ)  strncpy(op ,"==", 3);
-        else{
-            printf("Error: expected comparision operator.\n");
-            exit(1);
-        }
-        advance(p);     //consume operator
-
-        ASTNode *right = parse_expr(p);
-        ASTNode *condition = make_compare(op, left, right);
+        
         if(p -> current.type != TOKEN_RPAREN){
             printf("Error: expected ')' \n");
             exit(1);
@@ -269,18 +268,7 @@ ASTNode *parse_statement(Parser *p){
         }
 
         advance(p); // consume '('
-        ASTNode *left = parse_expr(p);
-        char op[3];
-        if(p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
-        else if(p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
-        else if(p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
-        else {
-            printf("Error: expected comparision operator in while condition.\n");
-            exit(1);
-        }       
-        advance(p);     // consume operator
-        ASTNode *right = parse_expr(p);
-        ASTNode *condition = make_compare(op, left,right);
+        ASTNode *condition = parse_expr(p);
         if(p -> current.type != TOKEN_RPAREN){
             printf("Error: expected ')' after while condition. \n");
             exit(1);
@@ -316,20 +304,8 @@ ASTNode *parse_statement(Parser *p){
         }
 
         advance(p); // consume '('
-        ASTNode *left = parse_expr(p);
-        char op[3];
-        if(p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
-        else if(p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
-        else if(p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
-        else {
-            printf("Error: expected comparision operator in do-while condition.\n");
-            exit(1);
-        }
-
-        advance(p); // consume the operator
-        ASTNode *right = parse_expr(p);
-        ASTNode *condition = make_compare(op, left, right);
-
+        
+        ASTNode *condition = parse_expr(p);
         if(p -> current.type != TOKEN_RPAREN){
             printf("Error: expected ')' after do-while condition. \n");
             exit(1);
@@ -375,20 +351,7 @@ ASTNode *parse_statement(Parser *p){
         }
         advance(p);     // consume ';' 
         // 2. condition: i < 10
-        ASTNode *left = parse_expr(p);
-        char op[3];
-        if      (p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
-        else if (p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
-        else if (p -> current.type == TOKEN_EQ) strncpy(op, "==", 3);
-        else {
-            printf("Error: expeected comparision operator in for condition.\n");
-            exit(1);
-        }
-
-        advance(p); // consume operator
-        ASTNode *right = parse_expr(p);
-        ASTNode *condition = make_compare(op, left, right);
-
+        ASTNode *condition = parse_expr(p);
         if(p -> current.type != TOKEN_SEMICOLON){
             printf("Error: expected ';' after for initializer.\n");
             exit(1);
@@ -417,21 +380,38 @@ ASTNode *parse_statement(Parser *p){
     return parse_expr(p);
 }
 
+ASTNode *parse_unary(Parser *p){
+    if(p -> current.type == TOKEN_MINUS){
+        advance(p);     // consume the '-'
+        ASTNode *operand = parse_unary(p); // right - association
+        return make_unary('-', operand);
+    }
+
+    if(p -> current.type == TOKEN_NOT){
+        advance(p);   // consume the '!'
+        ASTNode *operand = parse_unary(p); // right - associative
+        return make_unary('!', operand);
+    }
+
+    return parse_factor(p);
+}
+
 ASTNode *parse_term(Parser *p){
-    ASTNode *left = parse_factor(p);  //get left side
+    ASTNode *left = parse_unary(p);  //get left side
 
     while(p -> current.type == TOKEN_STAR ||
           p-> current.type == TOKEN_SLASH){
 
             char op = (p -> current.type == TOKEN_STAR) ? '*' : '/';
             advance(p);                            // consume the operator
-            ASTNode *right = parse_factor(p);      // get right side
+            ASTNode *right = parse_unary(p);      // get right side
             left = make_binop(op, left, right);    // build node
     }
       return left;
 }
 
-ASTNode *parse_expr(Parser *p){
+
+ASTNode *parse_add_sub(Parser *p){
     ASTNode *left = parse_term(p);
 
     while(p -> current.type == TOKEN_PLUS || 
@@ -441,6 +421,55 @@ ASTNode *parse_expr(Parser *p){
             ASTNode *right = parse_term(p);
             left = make_binop(op, left, right);
           }
+    return left;
+}
+
+ASTNode *parse_comparison(Parser *p){
+    ASTNode *left = parse_add_sub(p);
+    while(p -> current.type == TOKEN_LT || 
+          p -> current.type == TOKEN_GT ||
+          p -> current.type == TOKEN_LE ||
+          p -> current.type == TOKEN_GE){
+            char op[3];
+            if(p -> current.type == TOKEN_LT) strncpy(op, "<", 3);
+            else if(p -> current.type == TOKEN_GT) strncpy(op, ">", 3);
+            else if(p -> current.type == TOKEN_LE) strncpy(op, "<=", 3);
+            else if(p -> current.type == TOKEN_GE) strncpy(op, ">=", 3);
+
+            advance(p);
+            ASTNode *right = parse_add_sub(p);
+            left = make_compare(op, left, right);
+          }
+          return left;
+}
+
+ASTNode *parse_equality(Parser *p){
+    ASTNode *left = parse_comparison(p);
+    while(p -> current.type == TOKEN_EQ){
+        advance(p); // consume '='
+        ASTNode *right = parse_comparison(p);
+        left = make_compare("==", left, right);
+    }
+    return left;
+}
+
+ASTNode *parse_logical_and(Parser *p){
+    ASTNode *left = parse_equality(p);
+    while(p -> current.type == TOKEN_AND){
+        advance(p);     // consume &&
+        ASTNode *right = parse_equality(p);
+        left = make_logical("&&", left, right);
+    }
+    return left;
+}
+
+ASTNode *parse_expr(Parser *p){
+    ASTNode *left = parse_logical_and(p);
+    while(p -> current.type == TOKEN_OR){
+        advance(p);         // consume ||
+        ASTNode *right = parse_logical_and(p);
+        left = make_logical("||", left, right);
+    }
     return left;
 }
 
