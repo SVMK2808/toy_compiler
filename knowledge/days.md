@@ -40,7 +40,7 @@ OUTPUT:
 
 ---
 
-## Day 13 — User-defined functions, local/global scoping & call frames ✅
+## Day 13 — User-defined functions, return statements & call frames ✅
 
 **Date:** 2026-06-26
 
@@ -50,16 +50,11 @@ OUTPUT:
 - New tokens: `TOKEN_FN`, `TOKEN_RETURN`, `TOKEN_COMMA`.
 - New AST nodes: `NODE_FUNC_DEF`, `NODE_FUNC_CALL`, `NODE_RETURN`.
 - New VM structures: `CallFrame` (for tracking local symbol scopes and return addresses), `FuncDef`, and `FuncTable`.
-- New VM opcodes: `OP_CALL` (resolves function start, pushes CallFrame, binds parameters), `OP_RETURN` (pops CallFrame, pushes return value, jumps back), `OP_LOAD_LOCAL` (searches locals first, falls back to globals), `OP_STORE_LOCAL` (stores to local call frame), and `OP_ASSIGN_VAR` (resolves scope dynamically for variable reassignments).
-- Codegen: updated signature to thread an `in_func` context boolean. Uses `OP_ASSIGN_VAR` for all variable reassignments.
-- Scoping rules verified:
-  1. Reading a global variable from inside a function body.
-  2. Overwriting/reassigning a global variable from inside a function body.
-  3. Shadowing global variables using local parameters (leaving globals untouched).
+- New VM opcodes: `OP_CALL` (resolves function start, pushes CallFrame, binds parameters), `OP_RETURN` (pops CallFrame, pushes return value, jumps back), `OP_LOAD_LOCAL`/`OP_STORE_LOCAL` (local symbol scopes).
+- Codegen: updated signature to thread an `in_func` context boolean. Separates global symbol storage (`OP_LOAD`/`OP_STORE`) from function local stack/registers (`OP_LOAD_LOCAL`/`OP_STORE_LOCAL`).
 
-### Test input (Recursive Factorial & Scoping/Shadowing)
+### Test input (Recursive Factorial)
 ```c
-// 1. Recursion test
 fn fact(n) {
     if (n < 2) {
         return 1;
@@ -68,30 +63,37 @@ fn fact(n) {
 }
 let result = fact(5);
 print result;
-
-// 2. Scoping and Shadowing test
-let g = 10;
-fn update() {
-    g = 20;
-}
-fn shadow(g) {
-    print g;
-}
-shadow(5);
-print g;
-update();
-print g;
 ```
 
 ### Output
 ```
-// Recursion output
-120.00
+AST: 
+ FUNC_DEF(fact) params = [n]
+  IF
+  CONDITION:
+      COMPARE(<):
+        IDENT(n)
+        NUMBER(2)
+  THEN: 
+          RETURN
+        NUMBER(1)
+    RETURN
+    BINOP(*)
+      IDENT(n)
+          FUNC_CALL(fact)
+          BINOP(-)
+            IDENT(n)
+            NUMBER(1)
 
-// Scoping & Shadowing output
-5.00
-10.00
-20.00
+LET(result)
+    FUNC_CALL(fact)
+      NUMBER(5)
+
+PRINT
+  IDENT(result)
+
+OUTPUT: 
+120.00
 ```
 
 ---
