@@ -60,7 +60,7 @@ typedef struct {
 typedef struct{
     Instruction code[MAX_CODE];   //bytecode instructions
     int         code_count;       //how many instructions
-
+    int         start_ip;         // Tracks where next execution cycle starts in REPL
     double      stack[MAX_STACK]; //the stack
     int         stack_top;        //current stack pointer
     

@@ -7,6 +7,7 @@ void vm_init(VM *vm){
     vm -> code_count = 0;
     vm -> stack_top = 0;
     vm -> frame_top = -1;
+    vm -> start_ip = 0;
     vm -> func_table.count = 0;
     symtable_init(&vm -> symtable);
 }
@@ -33,7 +34,7 @@ void vm_register_func(VM *vm, const char *name, int code_start, int param_count,
 }
 
 void vm_run(VM *vm){
-    for(int i = 0; i < vm -> code_count; i++){
+    for(int i = vm -> start_ip; i < vm -> code_count; i++){
         Instruction ins = vm -> code[i];
         
         switch(ins.code){

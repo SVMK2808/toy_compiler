@@ -2,6 +2,32 @@
 
 ---
 
+## Day 15 — File Input, STDIN Piping & Interactive REPL ✅
+
+**Date:** 2026-06-28
+
+### What was added
+- Command-line interface in `main.c` supporting three compile modes:
+  1. **File Mode** (`./compiler file.toy`): Compiles and executes a file.
+  2. **Piped STDIN Mode** (`cat file.toy | ./compiler`): Compiles input piped from standard input.
+  3. **REPL Mode** (`./compiler`): Interactive prompt shell loop (`toy> `) supporting persistent scoping of variables and functions.
+- VM execution tracking (`start_ip` in `VM` struct): tracks the index where the current line's bytecode starts.
+- Modified `vm_run()` to execute instructions starting at `start_ip` rather than `0` to prevent duplicate prints and executions in the REPL.
+
+### Test inputs & verification
+- REPL interactive session:
+  ```
+  toy> let a = 10;
+  toy> let b = 20;
+  toy> print a + b;
+  30.00
+  toy> fn double(x) { return x * 2; }
+  toy> print double(5);
+  10.00
+  ```
+
+---
+
 ## Day 14 — Comparisons in expressions, logical operators & booleans ✅
 
 **Date:** 2026-06-27
