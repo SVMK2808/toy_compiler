@@ -4,6 +4,22 @@ A running log of all bugs found and fixed across the daily compiler build sessio
 
 ---
 
+## Day 16 — Function calls blocked & VM Heap overwrites
+
+### 1. Function calls blocked by variable existence check
+- **File:** `src/parser.c`
+- **Symptom:** Evaluating a function call in the REPL (e.g. `double(4)`) failed with `Error: Undefined variable: (double)`.
+- **Root cause:** In the refactored identifier block of `parse_factor()`, the `symtable_exists` verification check was run unconditionally on all parsed identifiers. Because user-defined function names are stored in `VM.func_table` rather than `p->symtable`, they failed the check and triggered the error.
+- **Fix:** Added a conditional check `next.type != TOKEN_LPAREN` to only run `symtable_exists` if the identifier is not being used as a function call name.
+
+### 2. VM Heap allocation index overwrite
+- **File:** `src/vm.c`
+- **Symptom:** Allocating multiple arrays caused them to overwrite each other on the heap, making their pointers collide.
+- **Root cause:** In `OP_NEW_ARRAY` handler, we assigned `vm->heap_top = count;` instead of `vm->heap_top += count;`. This reset the heap pointer to the current array's size rather than advancing it contiguously.
+- **Fix:** Corrected it to `vm->heap_top += count;`.
+
+---
+
 ## Day 15 — REPL duplicate statement executions due to halt early return
 
 ### 1. REPL duplicate statement executions due to halt early return

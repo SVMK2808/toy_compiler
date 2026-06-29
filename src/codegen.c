@@ -260,6 +260,44 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
                 codegen(node -> ret_val, vm, in_func);
                 vm_emit(vm, OP_RETURN, 0, NULL);
                 break;
+
+            case NODE_ARRAY_LIT: {
+                // Compile elements from left to right 
+                for(int i = 0; i< node -> array_lit.element_count; i++){
+                    codegen(node -> array_lit.elements[i], vm, in_func);
+                }
+
+                // Emit OP_NEW_ARRAY with count as double operand
+                vm_emit(vm, OP_NEW_ARRAY, node -> array_lit.element_count, NULL);
+                break;
+            }
+
+            case NODE_ARRAY_INDEX: {
+                // 1. Compile array pointer lookup (pushes array's heap start index)
+                codegen(node -> array_index.array, vm, in_func);
+
+                // 2. Compile index expression (pushes index value)
+                codegen(node -> array_index.index, vm, in_func);
+                
+                // 3. Emit OP_LOAD_ARRAY to pop pointer + index and load value from heap
+                vm_emit(vm, OP_LOAD_ARRAY, 0, NULL);
+                break;
+            }
+
+            case NODE_ARRAY_ASSIGN: {
+                //1. Compile right - hand side value expression (pushes value)
+                codegen(node -> array_assign.value, vm, in_func);
+
+                //2. Emit load to put array pointer on stack 
+                vm_emit(vm, in_func ? OP_LOAD_LOCAL : OP_LOAD, 0, node -> array_assign.name);
+
+                // 3. Compile index expression (pushes index)
+                codegen(node -> array_assign.index, vm, in_func);
+
+                //4. Emit OP_STORE_ARRAY to store value in the array's heap slot
+                vm_emit(vm, OP_STORE_ARRAY, 0, NULL);
+                break;
+            }
     }
     
 

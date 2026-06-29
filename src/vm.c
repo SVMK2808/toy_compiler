@@ -9,6 +9,8 @@ void vm_init(VM *vm){
     vm -> frame_top = -1;
     vm -> start_ip = 0;
     vm -> func_table.count = 0;
+    vm -> heap_top = 0;
+    vm -> func_table.count = 0;
     symtable_init(&vm -> symtable);
 }
 
@@ -224,6 +226,52 @@ void vm_run(VM *vm){
             case OP_NOT: {
                 double val = vm -> stack[--vm -> stack_top];
                 vm -> stack[vm -> stack_top++] = (val == 0.0) ? 1.0 : 0.0;
+                break;
+            }
+
+            case OP_NEW_ARRAY: {
+                int count = (int)ins.operand;
+                int start = vm -> heap_top;
+                if(start + count > MAX_HEAP){
+                    fprintf(stderr, "Error: VM heap overflow \n");
+                    exit(1);
+                }
+
+                // Pop stack elements in reverse order since the rightmost element was pushed last
+                for(int j = count - 1; j >= 0; j--){
+                    vm -> heap[start + j] = vm -> stack[--vm -> stack_top];
+                }
+
+                vm -> heap_top += count;
+                // Push the heap address (index) onto the stack 
+                vm -> stack[vm -> stack_top++] = (double)start;
+                break;
+            }
+
+            case OP_LOAD_ARRAY: {
+                double idx = vm -> stack[--vm -> stack_top];
+                double arr_ptr = vm -> stack[--vm -> stack_top];
+                int final_ptr = (int)arr_ptr + (int)idx;
+                if(final_ptr < 0 || final_ptr >= vm -> heap_top){
+                    fprintf(stderr, "Error: Array index out of bounds: %d\n", final_ptr);
+                    exit(1);
+                }
+
+                vm -> stack[vm -> stack_top++] = vm -> heap[final_ptr];
+                break;
+            }
+
+            case OP_STORE_ARRAY: {
+                double idx = vm -> stack[--vm -> stack_top];
+                double arr_ptr = vm -> stack[--vm -> stack_top];
+                double val = vm -> stack[--vm -> stack_top];
+                int final_ptr = (int)arr_ptr + (int)idx;
+                if(final_ptr < 0 || final_ptr >= vm -> heap_top){
+                    fprintf(stderr, "Error: Array index out of bounds: %d\n", final_ptr);
+                    exit(1);
+                }
+
+                vm -> heap[final_ptr] = val;
                 break;
             }
             case OP_HALT:

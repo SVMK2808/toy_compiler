@@ -102,6 +102,31 @@ ASTNode *make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **bo
     return node;
 }
 
+ASTNode *make_array_lit(ASTNode **elements, int count){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_ARRAY_LIT;
+    node -> array_lit.elements = elements;
+    node -> array_lit.element_count = count;
+    return node;
+}
+
+ASTNode *make_array_index(ASTNode *array, ASTNode *index){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_ARRAY_INDEX;
+    node -> array_index.array = array;
+    node -> array_index.index = index;
+    return node;
+}
+
+ASTNode *make_array_assign(const char *name, ASTNode *index, ASTNode *value){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_ARRAY_ASSIGN;
+    node -> array_assign.index = index;
+    node -> array_assign.value = value;
+    strncpy(node -> array_assign.name, name, 64);
+    return node;
+}
+
 ASTNode *make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count){
     ASTNode *node = malloc(sizeof(ASTNode));
     node -> type = NODE_FUNC_DEF;
@@ -262,6 +287,24 @@ void print_ast(ASTNode *node, int depth){
             printf("CONDITION: \n");
             print_ast(node -> do_while.condition, depth + 2);
             break;
+        
+        case NODE_ARRAY_LIT:
+            printf("ARRAY_LIT elements = %d\n", node -> array_lit.element_count);
+            for(int i = 0; i < node -> array_lit.element_count; i++){
+                print_ast(node -> array_lit.elements[i], depth + 1);
+            }
+            break;
+        
+        case NODE_ARRAY_INDEX:
+            printf("ARRAY_INDEX\n");
+            print_ast(node -> array_index.index, depth + 1);
+            break;
+        
+        case NODE_ARRAY_ASSIGN:
+            printf("ARRAY_DESIGN(%s)\n", node -> array_assign.name);
+            print_ast(node -> array_assign.index, depth + 1);
+            print_ast(node -> array_assign.value, depth + 1);
+            break;
 
         case NODE_FUNC_DEF:
             for(int i = 0; i < depth + 1; i++) printf(" ");
@@ -357,6 +400,22 @@ void free_ast(ASTNode *node){
                 free_ast(node -> do_while.body[i]);
             free(node -> do_while.body);
             free_ast(node -> do_while.condition);
+            break;
+        
+        case NODE_ARRAY_LIT:
+            for(int i = 0; i < node -> array_lit.element_count; i++)
+                free_ast(node -> array_lit.elements[i]);
+            free(node -> array_lit.elements);
+            break;
+        
+        case NODE_ARRAY_INDEX:
+            free_ast(node -> array_index.array);
+            free_ast(node -> array_index.index);
+            break;
+
+        case NODE_ARRAY_ASSIGN:
+            free_ast(node -> array_assign.index);
+            free_ast(node -> array_assign.value);
             break;
 
         case NODE_FUNC_DEF:

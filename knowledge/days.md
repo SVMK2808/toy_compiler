@@ -2,6 +2,35 @@
 
 ---
 
+## Day 16 — Array Support ✅
+
+**Date:** 2026-06-30
+
+### What was added
+- Array literals syntax `[expr1, expr2, ...]` parsed inside `parse_factor()`.
+- Postfix array index reading syntax `arr[index]` parsed inside `parse_factor()`, supporting nested lookups (e.g., `matrix[1][2]`).
+- Array element assignment syntax `arr[index] = value;` parsed inside `parse_statement()`.
+- Sequential memory allocation heap in VM (`double heap[MAX_HEAP]`) to contiguously store array elements.
+- VM opcodes `OP_NEW_ARRAY`, `OP_LOAD_ARRAY`, and `OP_STORE_ARRAY` to handle array instantiation, loading, and storing.
+
+### Test inputs & verification
+- REPL interactive session:
+  ```
+  toy> let arr = [10, 20, 30]
+  toy> print arr[0];
+  10.00
+  toy> print arr[1];
+  20.00
+  toy> arr[1] = 99;
+  toy> print arr[1];
+  99.00
+  toy> fn double(x) { return x * 2; }
+  toy> print double(4);
+  8.00
+  ```
+
+---
+
 ## Day 15 — File Input, STDIN Piping & Interactive REPL ✅
 
 **Date:** 2026-06-28

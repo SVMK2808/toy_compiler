@@ -7,6 +7,7 @@
 #define MAX_PARAMS 8
 #define MAX_FUNCS  64
 #define MAX_FRAMES 64
+#define MAX_HEAP 2048
 
 typedef enum {
     OP_PUSH,
@@ -30,6 +31,9 @@ typedef enum {
     OP_LE,      // less than or equal to (<=)
     OP_GE,      // greater than or equal to (>=)
     OP_NOT,     // logical negation (!)
+    OP_NEW_ARRAY, // allocate array of size (operand) on heap
+    OP_LOAD_ARRAY, // pop index, pop array ptr, push heap value
+    OP_STORE_ARRAY, // pop index, pop array ptr, pop value, store in heap
     OP_HALT
 } OpCode;
 
@@ -63,7 +67,9 @@ typedef struct{
     int         start_ip;         // Tracks where next execution cycle starts in REPL
     double      stack[MAX_STACK]; //the stack
     int         stack_top;        //current stack pointer
-    
+    double      heap[MAX_HEAP];   // Array elements live here
+    int         heap_top;         // Points to next free slot in heap
+
     SymTable    symtable;         // variables live here
     FuncTable   func_table;
     CallFrame   frames[MAX_FRAMES];

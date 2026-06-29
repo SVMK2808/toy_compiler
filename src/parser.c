@@ -45,43 +45,77 @@ ASTNode *parse_factor(Parser *p){
         return make_number(0.0);
     }
 
-
-    if(p -> current.type == TOKEN_IDENTIFIER){
-        Token next = peek_next(p);
-        if(next.type == TOKEN_LPAREN){
-            char name[64];
-            strncpy(name, p -> current.name, 64);
-            advance(p); // consume identifier
-            advance(p); // consume '('
-
-            ASTNode **args = malloc(sizeof(ASTNode*) * 8);
-            int arg_count = 0;
-            if(p -> current.type != TOKEN_RPAREN){
-                args[arg_count++] = parse_expr(p);
-                while(p -> current.type == TOKEN_COMMA){
-                    advance(p);     // consume ','
-                    args[arg_count++] = parse_expr(p);
-                }
+    if(p -> current.type == TOKEN_LBRACK){
+        advance(p); // consume '['
+        ASTNode **elements = malloc(sizeof(ASTNode*) * 128);
+        int count = 0;
+        if(p -> current.type != TOKEN_RBRACK){
+            elements[count++] = parse_expr(p);
+            while(p -> current.type == TOKEN_COMMA){
+                advance(p); // consume ','
+                elements[count++] = parse_expr(p);
             }
-
-            if(p -> current.type != TOKEN_RPAREN){
-                fprintf(stderr, "Error: expected ')' in function call. \n");
-                exit(1);
-            }
-            advance(p); // consume ')'
-            return make_func_call(name, args, arg_count);
         }
 
-        // regular variable reference
-        if(!symtable_exists(&p -> symtable, p -> current.name)){
+        if(p -> current.type != TOKEN_RBRACK){
+            printf("Error: expected ']' at the end of array literal. \n");
+            exit(1);
+        }
+        advance(p); // consume ']' 
+        return make_array_lit(elements, count);
+    }
+
+
+    if(p -> current.type == TOKEN_IDENTIFIER){
+        char name[64];
+        strncpy(name, p -> current.name, 64);
+
+        Token next = peek_next(p);
+
+        // Only verify variable existence if this is NOT a function call
+        if(next.type != TOKEN_LPAREN){
+            if(!symtable_exists(&p -> symtable, p -> current.name)){
             printf("Error: Undefined variable: (%s)\n", p -> current.name);
             exit(1);
         }
+        
+        }
+        advance(p); // consume identifier
+        ASTNode *node = make_ident(name);
 
-        char name[64];
-        strncpy(name, p -> current.name, 64);
-        advance(p);
-        return make_ident(name);
+        // Loop to support nested/consecutive lookups like arr[1] or matrix[1][2]
+        while(p ->current.type == TOKEN_LPAREN || p -> current.type == TOKEN_LBRACK){
+            if(p -> current.type == TOKEN_LPAREN){
+                advance(p); // consume '['
+                ASTNode **args = malloc(sizeof(ASTNode*) * 8);
+                int arg_count = 0;
+                if(p -> current.type != TOKEN_RPAREN){
+                    args[arg_count++] = parse_expr(p);
+                    while(p -> current.type == TOKEN_COMMA){
+                        advance(p);  // consume ','
+                        args[arg_count++] = parse_expr(p);
+                    }
+                }
+                if(p -> current.type != TOKEN_RPAREN){
+                    fprintf(stderr, "Error: expected ')' in function call. \n");
+                    exit(1);
+                }
+
+                advance(p);  // consume ')'
+                node = make_func_call(name, args, arg_count);
+            }else if(p -> current.type == TOKEN_LBRACK){
+                advance(p);  // cnosume '['
+                ASTNode *index = parse_expr(p);
+                if(p -> current.type != TOKEN_RBRACK){
+                    printf("Error: expected ']' after array index. \n");
+                    exit(1);
+                }
+
+                advance(p); // consume ']'
+                node = make_array_index(node, index);
+            }
+        }
+        return node;
     }
 
     if(p-> current.type == TOKEN_LPAREN){
@@ -319,6 +353,33 @@ ASTNode *parse_statement(Parser *p){
     // variable reassignment: x = expr
     if(p -> current.type == TOKEN_IDENTIFIER){
         Token next = peek_next(p);
+        if(next.type == TOKEN_LBRACK){
+            char name[64];
+            strncpy(name, p -> current.name, 64);
+
+            if(!symtable_exists(&p -> symtable, name)){
+                printf("Error: undefined variable '%s' \n", name);
+                exit(1);
+            }
+
+            advance(p); // consume identifier
+            advance(p); // consume '['
+            ASTNode *index = parse_expr(p);
+            if(p -> current.type != TOKEN_RBRACK){
+                printf("Error: expected ']' \n");
+                exit(1);
+            }
+            advance(p); // consume ']' 
+
+            if(p -> current.type == TOKEN_ASSIGN){
+                advance(p); // consume '=' 
+                ASTNode *value = parse_expr(p);
+                return make_array_assign(name, index, value);
+            }
+
+            // If not followed by '=', it's a plain read statement (eg. arr[0];)
+            return make_array_index(make_ident(name), index);
+        }
         if(next.type == TOKEN_ASSIGN){
             char name[64];
             strncpy(name, p -> current.name, 64);

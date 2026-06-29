@@ -107,6 +107,8 @@ Token lexer_next(Lexer *l){
         case ')' : return make_token(TOKEN_RPAREN);
         case '{' : return make_token(TOKEN_LBRACE);
         case '}' : return make_token(TOKEN_RBRACE);
+        case '[' : return make_token(TOKEN_LBRACK);
+        case ']' : return make_token(TOKEN_RBRACK);
         case ';' : return make_token(TOKEN_SEMICOLON);
         case ',' : return make_token(TOKEN_COMMA);
         case '!' : return make_token(TOKEN_NOT);

@@ -39,6 +39,8 @@ typedef enum {
     TOKEN_RPAREN,
     TOKEN_LBRACE, // {
     TOKEN_RBRACE, // }
+    TOKEN_LBRACK, // [
+    TOKEN_RBRACK, // ]
     TOKEN_SEMICOLON, // ;
     TOKEN_COMMA, // ,
     
@@ -93,6 +95,8 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_RPAREN: return "RPAREN";
         case TOKEN_LBRACE: return "LBRACE";
         case TOKEN_RBRACE: return "RBRACE";
+        case TOKEN_LBRACK: return "LBRACK";
+        case TOKEN_RBRACK: return "RBRACK";
         case TOKEN_SEMICOLON: return "SEMICOLON";
         case TOKEN_COMMA: return "COMMA";
 

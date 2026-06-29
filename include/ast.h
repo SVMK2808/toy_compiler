@@ -18,6 +18,9 @@ typedef enum{
     NODE_FUNC_DEF, // fn name(params) { body }
     NODE_FUNC_CALL, // name(args)
     NODE_RETURN,    // return <expr>
+    NODE_ARRAY_LIT, // array literal eg. [1, 2, 3]
+    NODE_ARRAY_INDEX, // array index eg. arr[index]
+    NODE_ARRAY_ASSIGN, // array index assignment eg. arr[index] = val
 }NodeType;
 
 typedef struct ASTNode{
@@ -86,6 +89,22 @@ typedef struct ASTNode{
         int             body_count; // number of statements in the loop body
     }do_while;          // for NODE_DO_WHILE
 
+    struct {
+        struct ASTNode **elements; 
+        int            element_count;
+    } array_lit;        // for NODE_ARRAY_LIT
+
+    struct {
+        struct ASTNode *array;
+        struct ASTNode *index;
+    } array_index;      // for NODE_ARRAY_INDEX
+
+    struct {
+        char            name[64];
+        struct ASTNode *index;
+        struct ASTNode *value;
+    }array_assign;      // for NODE_ARRAY_ASSIGN
+
     struct{
         char           name[64]; // function name
         char           params[8][64]; // 2D array for params
@@ -135,6 +154,12 @@ ASTNode* make_while(ASTNode *condition, ASTNode **body, int body_count);
 ASTNode* make_do_while(ASTNode *condition, ASTNode **body, int body_count);
 // For loop
 ASTNode* make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **body, int body_count);
+// For making array literal
+ASTNode* make_array_lit(struct ASTNode **elements, int count);
+// For making array index eg. arr[index]
+ASTNode* make_array_index(struct ASTNode *array, struct ASTNode *index);
+// For making array assignment eg. arr[index] = 1
+ASTNode* make_array_assign(const char* name, struct ASTNode *index, struct ASTNode *value);
 // for function definition
 ASTNode* make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count);
 // for function call
