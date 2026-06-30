@@ -298,6 +298,15 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
                 vm_emit(vm, OP_STORE_ARRAY, 0, NULL);
                 break;
             }
+
+            case NODE_ASSERT: {
+                // Compile assertion condition expression
+                codegen(node -> assertion.condition, vm, in_func);
+                
+                // Emit OP_ASSERT
+                vm_emit(vm, OP_ASSERT, 0.0, NULL);
+                break; 
+            }
     }
     
 

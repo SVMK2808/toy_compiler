@@ -4,6 +4,11 @@ A running log of all bugs found and fixed across the daily compiler build sessio
 
 ---
 
+## Day 17 — VAPL Stage 1: Runtime Assert Statement
+- No compiler or VM runtime bugs encountered or fixed.
+
+---
+
 ## Day 16 — Function calls blocked & VM Heap overwrites
 
 ### 1. Function calls blocked by variable existence check

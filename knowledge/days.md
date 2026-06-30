@@ -2,6 +2,28 @@
 
 ---
 
+## Day 17 — VAPL Stage 1: Runtime Assert Statement ✅
+
+**Date:** 2026-06-30
+
+### What was added
+- Token `TOKEN_ASSERT` and keyword mapping for `assert`.
+- AST node type `NODE_ASSERT`, constructor function, AST printing, and cleanup support.
+- Statement parsing for `assert <expr>;` inside `parse_statement()`.
+- VM Opcode `OP_ASSERT` that pops the top of the stack and halts the VM with an exit status of 1 if the value is `0.0`.
+
+### Test inputs & verification
+- Script test with `test_assert.toy`:
+  ```
+  let x = 5;
+  assert x > 3; // passes
+  print x;      // prints 5.00
+  assert x < 3; // fails and aborts
+  print 0;      // not reached
+  ```
+
+---
+
 ## Day 16 — Array Support ✅
 
 **Date:** 2026-06-30

@@ -127,6 +127,13 @@ ASTNode *make_array_assign(const char *name, ASTNode *index, ASTNode *value){
     return node;
 }
 
+ASTNode *make_assert(ASTNode *condition){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node -> type = NODE_ASSERT;
+    node -> assertion.condition = condition;
+    return node;
+}
+
 ASTNode *make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count){
     ASTNode *node = malloc(sizeof(ASTNode));
     node -> type = NODE_FUNC_DEF;
@@ -306,6 +313,12 @@ void print_ast(ASTNode *node, int depth){
             print_ast(node -> array_assign.value, depth + 1);
             break;
 
+        case NODE_ASSERT: 
+            for(int i = 0; i < depth + 1; i++) printf(" ");
+            printf("ASSERT\n");
+            print_ast(node -> assertion.condition, depth + 1);
+            break;
+
         case NODE_FUNC_DEF:
             for(int i = 0; i < depth + 1; i++) printf(" ");
             printf("FUNC_DEF(%s) params = [", node -> func_def.name);
@@ -416,6 +429,10 @@ void free_ast(ASTNode *node){
         case NODE_ARRAY_ASSIGN:
             free_ast(node -> array_assign.index);
             free_ast(node -> array_assign.value);
+            break;
+        
+        case NODE_ASSERT:
+            free_ast(node -> assertion.condition);
             break;
 
         case NODE_FUNC_DEF:

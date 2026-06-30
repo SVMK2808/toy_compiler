@@ -21,6 +21,7 @@ typedef enum{
     NODE_ARRAY_LIT, // array literal eg. [1, 2, 3]
     NODE_ARRAY_INDEX, // array index eg. arr[index]
     NODE_ARRAY_ASSIGN, // array index assignment eg. arr[index] = val
+    NODE_ASSERT, // VAPL: assert statement
 }NodeType;
 
 typedef struct ASTNode{
@@ -105,6 +106,9 @@ typedef struct ASTNode{
         struct ASTNode *value;
     }array_assign;      // for NODE_ARRAY_ASSIGN
 
+    struct {
+        struct ASTNode *condition;
+    } assertion;        // for NODE_ASSERT
     struct{
         char           name[64]; // function name
         char           params[8][64]; // 2D array for params
@@ -162,6 +166,8 @@ ASTNode* make_array_index(struct ASTNode *array, struct ASTNode *index);
 ASTNode* make_array_assign(const char* name, struct ASTNode *index, struct ASTNode *value);
 // for function definition
 ASTNode* make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count);
+// for assert statements
+ASTNode* make_assert(struct ASTNode *condition);
 // for function call
 ASTNode* make_func_call(const char *name, ASTNode **args, int arg_count);
 // for return statment

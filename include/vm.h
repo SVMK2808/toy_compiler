@@ -34,6 +34,7 @@ typedef enum {
     OP_NEW_ARRAY, // allocate array of size (operand) on heap
     OP_LOAD_ARRAY, // pop index, pop array ptr, push heap value
     OP_STORE_ARRAY, // pop index, pop array ptr, pop value, store in heap
+    OP_ASSERT,  // VAPL assert: checks if top of stack is not 0.0
     OP_HALT
 } OpCode;
 

@@ -274,6 +274,15 @@ void vm_run(VM *vm){
                 vm -> heap[final_ptr] = val;
                 break;
             }
+
+            case OP_ASSERT: {
+                double val = vm -> stack[--vm -> stack_top];
+                if(val == 0.0){
+                    fprintf(stderr, "Error: Assertion failed. \n");
+                    exit(1);
+                }
+                break;
+            }
             case OP_HALT:
                 return;
                 

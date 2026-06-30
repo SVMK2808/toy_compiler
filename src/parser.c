@@ -255,6 +255,13 @@ ASTNode *parse_statement(Parser *p){
         return make_print(expr);
     }
 
+    // assert <expr>
+    if(p -> current.type == TOKEN_ASSERT){
+        advance(p); // consume 'assert'
+        ASTNode *expr = parse_expr(p);
+        return make_assert(expr);
+    }
+
     // if ( <condition> ) { <then> } else { <else> }
     if(p -> current.type == TOKEN_IF){
         advance(p);   // consume 'if'

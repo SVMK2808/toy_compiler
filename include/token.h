@@ -44,6 +44,8 @@ typedef enum {
     TOKEN_SEMICOLON, // ;
     TOKEN_COMMA, // ,
     
+    // VAPL
+    TOKEN_ASSERT,
 
     // Special
     TOKEN_EOF,
@@ -100,6 +102,8 @@ static inline const char *token_type_to_str(TokenType type){
         case TOKEN_SEMICOLON: return "SEMICOLON";
         case TOKEN_COMMA: return "COMMA";
 
+        // VAPL
+        case TOKEN_ASSERT: return "ASSERT";
         //Special characters
         case TOKEN_EOF: return "EOF";
         case TOKEN_UNKNOWN: return "UNKOWN";
