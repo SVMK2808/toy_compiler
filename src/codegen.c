@@ -185,25 +185,36 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
                 break;
             }
             case NODE_WHILE: {
-                //1. save the index we'll jump back to (top of the loop)
+                //1. Emit check BEFORE entering loop (initial invariant check)
+                if(node -> while_loop.invariant){
+                    codegen(node -> while_loop.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                }
+                //2. save the index we'll jump back to (top of the loop)
                 int loop_start = vm -> code_count;
 
-                // 2. emit condition code
+                // 3. emit condition code
                 codegen(node -> while_loop.condition, vm, in_func);
 
-                // 3. emit JMP_IF_FALSE - don't know target yet, patch later.
+                // 4.. emit JMP_IF_FALSE - don't know target yet, patch later.
                 int jmp_if_false_idx = vm -> code_count;
                 vm_emit(vm, OP_JMP_IF_FALSE, 0, NULL);
 
-                // 4. emit loop
+                // 5. emit loop body
                 for(int i = 0; i < node -> while_loop.body_count; i++){
                     codegen(node -> while_loop.body[i], vm, in_func);
                 }
 
-                // 5. jump back to loop_start (known now, no patching needed)
+                //6. Emit check AFTER loop body (iteration invariant check)
+                if(node -> while_loop.invariant){
+                    codegen(node -> while_loop.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                }
+
+                //7. jump back to loop_start (known now, no patching needed)
                 vm_emit(vm, OP_JMP, loop_start, NULL);
 
-                // 6. patch JMP_IF_FALSE to point here (after the loop)
+                //8. patch JMP_IF_FALSE to point here (after the loop)
                 vm -> code[jmp_if_false_idx].operand = vm -> code_count;
                 break;
             }

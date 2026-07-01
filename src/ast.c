@@ -73,10 +73,11 @@ ASTNode *make_assign(const char* name, ASTNode *value){
     return node;
 }
 
-ASTNode *make_while(ASTNode *condition, ASTNode **body, int body_count){
+ASTNode *make_while(ASTNode *condition, ASTNode *invariant, ASTNode **body, int body_count){
     ASTNode *node = malloc(sizeof(ASTNode));
     node -> type = NODE_WHILE;
     node -> while_loop.condition = condition;
+    node -> while_loop.invariant = invariant;
     node -> while_loop.body = body;
     node -> while_loop.body_count = body_count;
     return node;
@@ -274,6 +275,12 @@ void print_ast(ASTNode *node, int depth){
         case NODE_WHILE:
             printf("WHILE\n");
             for(int i = 0; i < depth + 1; i++) printf(" ");
+            if(node -> while_loop.invariant){
+                for(int i = 0; i < depth + 2; i++) printf(" ");
+                printf("INVARIANT: \n");
+                print_ast(node -> while_loop.invariant, depth + 3);
+            }
+            for(int i = 0 ; i < depth + 2; i++) printf(" ");
             printf("CONDITION: \n");
             print_ast(node -> while_loop.condition, depth + 2);
             for(int i = 0; i < depth + 1; i++) printf(" ");
@@ -403,6 +410,9 @@ void free_ast(ASTNode *node){
 
         case NODE_WHILE:
             free_ast(node -> while_loop.condition);
+            if(node -> while_loop.invariant){
+                free_ast(node -> while_loop.invariant);
+            }
             for(int i = 0; i< node -> while_loop.body_count; i++)
                 free_ast(node -> while_loop.body[i]);
             free(node -> while_loop.body);

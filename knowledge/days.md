@@ -2,6 +2,35 @@
 
 ---
 
+## Day 18 — VAPL Stage 2: Runtime Loop Invariants ✅
+
+**Date:** 2026-07-01
+
+### What was added
+- Token `TOKEN_INVARIANT` and keyword mapping for `invariant`.
+- AST support for loop invariants inside `while_loop` structure (optional `invariant` child).
+- Updated `make_while()` constructor, `print_ast()`, and `free_ast()` for `NODE_WHILE` to support invariants.
+- Statement parsing for `while (cond) [invariant (expr)] { body }` inside `parse_statement()`.
+- Codegen for `NODE_WHILE` to emit invariant assertions both before loop entry and at loop body iteration boundaries.
+
+### Test inputs & verification
+- Script test with `test_invariant.toy`:
+  ```
+  let x = 0;
+  while(x < 3) invariant (x >= 0) {
+      x = x + 1;
+  }
+  print x; // prints 3.00
+
+  let y = 0; 
+  while (y < 5) invariant (y < 2) {
+      y = y + 1;
+  }
+  print y; // aborts at runtime
+  ```
+
+---
+
 ## Day 17 — VAPL Stage 1: Runtime Assert Statement ✅
 
 **Date:** 2026-06-30

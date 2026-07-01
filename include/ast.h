@@ -80,6 +80,7 @@ typedef struct ASTNode{
 
     struct {
         struct ASTNode *condition;  // the loop condition
+        struct ASTNode *invariant;  // optional loop invariant (NULL if none)
         struct ASTNode **body;      // statements inside the loop body
         int             body_count; // number of statements in the loop body
     } while_loop;       // for NODE_WHILE
@@ -153,7 +154,7 @@ ASTNode* make_if(ASTNode *condition,
 // For x = <expr> (reassignment of same variable)
 ASTNode *make_assign(const char* name, ASTNode* value);
 // While loop
-ASTNode* make_while(ASTNode *condition, ASTNode **body, int body_count);
+ASTNode* make_while(ASTNode *condition, ASTNode *invariant, ASTNode **body, int body_count);
 // Do-while loop
 ASTNode* make_do_while(ASTNode *condition, ASTNode **body, int body_count);
 // For loop

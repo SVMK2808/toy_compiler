@@ -51,6 +51,7 @@ Token lexer_next(Lexer *l){
         else if(strcmp(t.name, "true") == 0) t.type = TOKEN_TRUE;
         else if(strcmp(t.name, "false") == 0) t.type = TOKEN_FALSE;
         else if(strcmp(t.name, "assert") == 0) t.type = TOKEN_ASSERT;
+        else if(strcmp(t.name, "invariant") == 0) t.type = TOKEN_INVARIANT;
 
         return t;
     }

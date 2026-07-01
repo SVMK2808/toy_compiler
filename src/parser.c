@@ -300,7 +300,9 @@ ASTNode *parse_statement(Parser *p){
 
     }
 
-    // while ( <condition> ) { <body> }
+    // while ( <condition> ) 
+    // [invariant ( <invariant_expr ) ] 
+    // { <body> }
     if(p -> current.type == TOKEN_WHILE){
         advance(p);     // consume 'while'
         if(p -> current.type != TOKEN_LPAREN){
@@ -314,11 +316,28 @@ ASTNode *parse_statement(Parser *p){
             printf("Error: expected ')' after while condition. \n");
             exit(1);
         }
-        advance(p);
+        advance(p);  // consume ')'
+        ASTNode *invariant = NULL;
+        if(p -> current.type == TOKEN_INVARIANT){
+            advance(p); // consume "invariant"
+            if(p -> current.type != TOKEN_LPAREN){
+                printf("Error: expected '(' after invariant expression.\n");
+                exit(1);
+            }
+
+            advance(p); // consume '('
+            invariant = parse_expr(p);
+            if(p -> current.type != TOKEN_RPAREN){
+                printf("Error: expected ')' after invariant expression. \n");
+                exit(1);
+            }
+
+            advance(p); // consume ')' 
+        }
 
         int body_count = 0;
         ASTNode **body = parse_block(p, &body_count);
-        return make_while(condition, body, body_count);
+        return make_while(condition, invariant, body, body_count);
 
     }
 
