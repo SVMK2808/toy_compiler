@@ -1,0 +1,11 @@
+fn sum_array(arr, size) {
+    let sum = 0;
+    for (let i = 0; i < size; i = i + 1) {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+let my_arr = [5, 10, 15, 20];
+let total = sum_array(my_arr, 4);
+print total;

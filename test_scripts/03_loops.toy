@@ -1,0 +1,14 @@
+let w = 3;
+while (w > 0) {
+    print w;
+    w = w - 1;
+}
+
+let d = 0;
+do {
+    print 42;
+} while (d > 0);
+
+for (let i = 0; i < 3; i = i + 1) {
+    print i;
+}

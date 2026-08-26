@@ -106,6 +106,7 @@ static inline const char *token_type_to_str(TokenType type){
         // VAPL
         case TOKEN_ASSERT: return "ASSERT";
         case TOKEN_INVARIANT: return "INVARIANT";
+        
         //Special characters
         case TOKEN_EOF: return "EOF";
         case TOKEN_UNKNOWN: return "UNKOWN";

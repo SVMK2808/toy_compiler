@@ -142,6 +142,7 @@ int main(int argc, char **argv){
                     char line[1024];
                     while(1){
                         printf("toy> ");
+                        // For EOF - Ctrl + D shortcut
                         if(!fgets(line, sizeof(line), stdin)){
                             break;
                         }

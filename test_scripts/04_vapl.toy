@@ -1,0 +1,9 @@
+let val = 5;
+assert val > 3;
+print val;
+
+let x = 0;
+while (x < 3) invariant (x >= 0) {
+    x = x + 1;
+}
+print x;

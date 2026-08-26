@@ -160,6 +160,12 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
                 //1. emit init once (let i = 0 or i = 0)
                 codegen(node -> for_loop.init, vm, in_func);
 
+                // Initial invariant check
+                if(node -> for_loop.invariant){
+                    codegen(node -> for_loop.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                }
+
                 //2. save top of loop
                 int loop_start = vm -> code_count;
 
@@ -176,6 +182,12 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
 
                 //6. emit increment
                 codegen(node -> for_loop.increment, vm, in_func);
+
+                // Iterate invariant check 
+                if(node -> for_loop.invariant){
+                    codegen(node -> for_loop.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0 , NULL);
+                }
 
                 //7. jump back to loop_start
                 vm_emit(vm, OP_JMP, loop_start, NULL);
@@ -220,12 +232,24 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
             }
 
             case NODE_DO_WHILE:{
+                // Iterate invariant check 
+                if(node -> do_while.invariant){
+                    codegen(node -> do_while.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0 , NULL);
+                }
+
                 //1. save loop start (top of body)
                 int loop_start = vm -> code_count;
 
                 //2. emit body first
                 for(int i = 0; i < node -> do_while.body_count; i++)
                     codegen(node -> do_while.body[i], vm, in_func);
+
+                // Iterate invariant check 
+                if(node -> do_while.invariant){
+                    codegen(node -> do_while.invariant, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0 , NULL);
+                }
 
                 //3. emit condition
                 codegen(node -> do_while.condition, vm, in_func);

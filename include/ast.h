@@ -75,6 +75,7 @@ typedef struct ASTNode{
         struct ASTNode *condition; // condition for the 'for' loop
         struct ASTNode *increment; // increment (i = i + 1)
         struct ASTNode **body;  // loop body statements
+        struct ASTNode *invariant; // optional loop invariant (NULL if none)
         int            body_count;
     } for_loop;     // for NODE_FOR
 
@@ -88,6 +89,7 @@ typedef struct ASTNode{
     struct{
         struct ASTNode *condition;  // the loop condition
         struct ASTNode **body;      // statments in the loop body
+        struct ASTNode *invariant;  // optional loop invariant (NULL if none)
         int             body_count; // number of statements in the loop body
     }do_while;          // for NODE_DO_WHILE
 
@@ -156,9 +158,9 @@ ASTNode *make_assign(const char* name, ASTNode* value);
 // While loop
 ASTNode* make_while(ASTNode *condition, ASTNode *invariant, ASTNode **body, int body_count);
 // Do-while loop
-ASTNode* make_do_while(ASTNode *condition, ASTNode **body, int body_count);
+ASTNode* make_do_while(ASTNode *condition, ASTNode *invariant, ASTNode **body, int body_count);
 // For loop
-ASTNode* make_for(ASTNode *init, ASTNode *condition, ASTNode *incr, ASTNode **body, int body_count);
+ASTNode* make_for(ASTNode *init, ASTNode *condition, ASTNode *invariant, ASTNode *incr, ASTNode **body, int body_count);
 // For making array literal
 ASTNode* make_array_lit(struct ASTNode **elements, int count);
 // For making array index eg. arr[index]

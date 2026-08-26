@@ -1,0 +1,11 @@
+let x = 5;
+let y = 10;
+let cond1 = x < y;
+let cond2 = y >= 10 && !false;
+if (cond1 && cond2) {
+    print 1;
+} else {
+    print 0;
+}
+print -x;
+print (x > 10) || false;

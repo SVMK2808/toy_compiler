@@ -1,0 +1,5 @@
+let d = 0;
+do invariant (d >= 0) {
+    print d;
+    d = d + 1;
+} while (d < 3);

@@ -1,0 +1,14 @@
+let g = 10;
+
+fn update() {
+    g = 20;
+}
+
+fn shadow(g) {
+    print g;
+}
+
+shadow(5);
+print g;
+update();
+print g;

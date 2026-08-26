@@ -344,6 +344,24 @@ ASTNode *parse_statement(Parser *p){
     // do { <body> } while (<cpndition> )
     if(p -> current.type == TOKEN_DO){
         advance(p); // consume 'do'
+        ASTNode *invariant = NULL;
+        if(p -> current.type == TOKEN_INVARIANT){
+            advance(p);        // consume "invariant"
+            if(p -> current.type != TOKEN_LPAREN){
+                printf("Error: expected '(' after invariant expression. \n");
+                exit(1);
+            }
+
+            advance(p);        // consume '('
+            invariant = parse_expr(p);
+            if(p -> current.type != TOKEN_RPAREN){
+                printf("Error: expected ')' after invariant expression. \n");
+                exit(1);
+            }
+
+            advance(p);        // consume ')'
+        }
+
         if(p -> current.type != TOKEN_LBRACE){
             printf("Error: expected a '{' after 'do'.\n");
             exit(1);
@@ -372,7 +390,7 @@ ASTNode *parse_statement(Parser *p){
         }
 
         advance(p);
-        return make_do_while(condition, body, count);
+        return make_do_while(condition, invariant, body, count);
 
     }
 
@@ -453,11 +471,27 @@ ASTNode *parse_statement(Parser *p){
         }
         advance(p);     // consume ')'
 
+        ASTNode *invariant = NULL;
+        if(p -> current.type == TOKEN_INVARIANT){
+            advance(p);     // consume 'invariant'
+            if(p -> current.type != TOKEN_LPAREN){
+                printf("Error: expected '(' after invariant expression. \n");
+                exit(1);
+            }
+            advance(p);     // consume '('
+            invariant = parse_expr(p);
+            if(p -> current.type != TOKEN_RPAREN){
+                printf("Error: expected ')' after invariant expression. \n");
+                exit(1);
+            } 
+            advance(p);  // consume ')'
+        }
+
         // 4. body
         int body_count = 0;
         ASTNode **body = parse_block(p, &body_count);
 
-        return make_for(init, condition, incr, body, body_count);
+        return make_for(init, condition, invariant, incr, body, body_count);
 
         
     }
