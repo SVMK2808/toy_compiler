@@ -137,7 +137,7 @@ ASTNode *make_assert(ASTNode *condition){
     return node;
 }
 
-ASTNode *make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count){
+ASTNode *make_func_def(const char *name, char params[][64], int param_count, ASTNode *precondition, ASTNode *postcondition, ASTNode **body, int body_count){
     ASTNode *node = malloc(sizeof(ASTNode));
     node -> type = NODE_FUNC_DEF;
     strncpy(node -> func_def.name, name, 64);
@@ -145,6 +145,8 @@ ASTNode *make_func_def(const char *name, char params[][64], int param_count, AST
     for(int i = 0; i < param_count; i++){
         strncpy(node -> func_def.params[i], params[i], 64);
     }
+    node -> func_def.precondition = precondition;
+    node -> func_def.postcondition = postcondition;
     node -> func_def.body = body;
     node -> func_def.body_count = body_count;
     return node;
@@ -344,6 +346,18 @@ void print_ast(ASTNode *node, int depth){
             for(int i = 0; i < node -> func_def.param_count; i++)
                 printf("%s%s", node -> func_def.params[i], i < node -> func_def.param_count - 1 ? ", ": "");
             printf("]\n");
+
+            if(node -> func_def.precondition){
+                for(int i = 0; i < depth + 1; i++) printf(" ");
+                printf("  REQUIRES: \n");
+                print_ast(node -> func_def.precondition, depth + 2);
+            }
+
+            if(node -> func_def.postcondition){
+                for(int i = 0; i < depth + 1; i++) printf(" ");
+                printf("  ENSURES: \n");
+                print_ast(node -> func_def.postcondition, depth + 2);
+            }
             for(int i = 0; i < node -> func_def.body_count; i++)
                 print_ast(node -> func_def.body[i], depth + 1);
             break;
@@ -462,6 +476,10 @@ void free_ast(ASTNode *node){
             break;
 
         case NODE_FUNC_DEF:
+            if(node -> func_def.precondition)
+                free_ast(node -> func_def.precondition);
+            if(node -> func_def.postcondition)
+                free_ast(node -> func_def.postcondition);
             for(int i = 0; i < node -> func_def.body_count; i++)
                 free_ast(node -> func_def.body[i]);
             free(node -> func_def.body);

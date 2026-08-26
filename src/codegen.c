@@ -2,6 +2,8 @@
 #include <string.h>
 #include "../include/codegen.h"
 
+static ASTNode *current_func = NULL;
+
 void codegen(ASTNode *node, VM *vm, bool in_func){
     if(!node) return;
     switch (node -> type) {
@@ -261,11 +263,20 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
             }
 
             case NODE_FUNC_DEF: {
+                ASTNode *prev_func = current_func;
+                current_func = node;
                 // Jump over the function body during sequential execution
                 int jmp_idx = vm -> code_count;
                 vm_emit(vm, OP_JMP, 0, NULL);
                 int start_addr = vm -> code_count;
                 vm_register_func(vm, node -> func_def.name, start_addr, node -> func_def.param_count, node -> func_def.params);
+
+
+                // Generate entry - precondition checks 
+                if(node -> func_def.precondition){
+                    codegen(node -> func_def.precondition, vm, true);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                }
 
                 // Generate bytecode for function body (in_func = true)
                 for(int i = 0; i < node -> func_def.body_count; i++){
@@ -274,10 +285,17 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
 
                 // Fallback return if function body doesn't end with explicit return.
                 vm_emit(vm, OP_PUSH, 0.0, NULL);
+                if(node -> func_def.postcondition){
+                    vm_emit(vm, OP_STORE_LOCAL, 0, "result");
+                    codegen(node -> func_def.postcondition, vm, true);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                    vm_emit(vm, OP_LOAD_LOCAL, 0, "result");
+                }
                 vm_emit(vm, OP_RETURN, 0, NULL);
 
                 // Patch the initial jump to point here (after the function body).
                 vm -> code[jmp_idx].operand = vm -> code_count;
+                current_func = prev_func;
                 break;
             }
 
@@ -293,6 +311,12 @@ void codegen(ASTNode *node, VM *vm, bool in_func){
             
             case NODE_RETURN:
                 codegen(node -> ret_val, vm, in_func);
+                if(current_func && current_func -> func_def.postcondition){
+                    vm_emit(vm, OP_STORE_LOCAL, 0, "result");
+                    codegen(current_func -> func_def.postcondition, vm, in_func);
+                    vm_emit(vm, OP_ASSERT, 0, NULL);
+                    vm_emit(vm, OP_LOAD_LOCAL, 0, "result");
+                }
                 vm_emit(vm, OP_RETURN, 0, NULL);
                 break;
 

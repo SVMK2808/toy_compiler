@@ -116,6 +116,8 @@ typedef struct ASTNode{
         char           name[64]; // function name
         char           params[8][64]; // 2D array for params
         int            param_count;  // number of parameters
+        struct ASTNode *precondition; // Preconditions (requires)
+        struct ASTNode *postcondition; // Postconditions (ensures)
         struct ASTNode **body;  //function definition
         int            body_count; // number of statements in the body
     } func_def;         // for NODE_FUNC_DEF
@@ -168,7 +170,7 @@ ASTNode* make_array_index(struct ASTNode *array, struct ASTNode *index);
 // For making array assignment eg. arr[index] = 1
 ASTNode* make_array_assign(const char* name, struct ASTNode *index, struct ASTNode *value);
 // for function definition
-ASTNode* make_func_def(const char *name, char params[][64], int param_count, ASTNode **body, int body_count);
+ASTNode* make_func_def(const char *name, char params[][64], int param_count, ASTNode *precondition, ASTNode *postcondition, ASTNode **body, int body_count);
 // for assert statements
 ASTNode* make_assert(struct ASTNode *condition);
 // for function call

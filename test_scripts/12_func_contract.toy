@@ -1,0 +1,5 @@
+fn add(x, y) requires x > 0 ensures result > y {
+    return x + y;
+}
+
+print add(5, 10);

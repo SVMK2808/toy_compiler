@@ -211,12 +211,29 @@ ASTNode *parse_statement(Parser *p){
         for(int i = 0; i < param_count; i++){
             symtable_set(&p -> symtable, params[i], 0);
         }
+
+        // Register special "result" local variable for postconditions and body
+        symtable_set(&p -> symtable, "result", 0);
+
+        // Parse optional preconditions (requires) and postconditions (ensures)
+        ASTNode *precondition = NULL;
+        ASTNode *postcondition = NULL;
+        while(p -> current.type == TOKEN_REQUIRES || 
+            p -> current.type == TOKEN_ENSURES){
+                if(p -> current.type == TOKEN_REQUIRES){
+                    advance(p);     // consume 'requires'
+                    precondition = parse_expr(p);
+                }else {
+                    advance(p); // consume 'ensures'
+                    postcondition = parse_expr(p);
+                }
+            }
         int body_count = 0;
         ASTNode **body = parse_block(p, &body_count);
 
         // Restore symtable (discarding local parameters and variables)
         p -> symtable = saved_table;
-        return make_func_def(name, params, param_count, body, body_count);
+        return make_func_def(name, params, param_count, precondition, postcondition, body, body_count);
     }
 
     // return <expr>

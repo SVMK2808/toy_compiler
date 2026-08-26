@@ -47,6 +47,8 @@ typedef enum {
     // VAPL
     TOKEN_ASSERT,
     TOKEN_INVARIANT,
+    TOKEN_REQUIRES,
+    TOKEN_ENSURES,
 
     // Special
     TOKEN_EOF,
@@ -106,6 +108,8 @@ static inline const char *token_type_to_str(TokenType type){
         // VAPL
         case TOKEN_ASSERT: return "ASSERT";
         case TOKEN_INVARIANT: return "INVARIANT";
+        case TOKEN_REQUIRES: return "REQUIRES";
+        case TOKEN_ENSURES: return "ENSURES";
         
         //Special characters
         case TOKEN_EOF: return "EOF";

@@ -1,0 +1,6 @@
+fn bad_add(x, y) requires x > 0 ensures result > y + 10
+{
+    return x + y;
+}
+
+print bad_add(5, 10);

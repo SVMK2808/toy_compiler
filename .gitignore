@@ -21,3 +21,6 @@ compiler
 # clangd / compile commands
 compile_commands.json
 .cache/
+
+# Agent configuration
+.agents/
