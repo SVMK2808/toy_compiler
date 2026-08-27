@@ -1,9 +1,9 @@
-# Toy Compiler
+# Vera Programming Language
 
 A stack-based VM and custom compiler built in C. It supports an end-to-end compilation pipeline:
 **Lexer ➔ Parser (AST) ➔ Codegen ➔ Stack-based Virtual Machine**.
 
-The compiler includes standard programming language constructs alongside verification-oriented features under **VAPL** (Verification Assisted Programming Language) such as runtime assertions and loop invariants.
+Vera is a **Verification Aware Programming Language** featuring both runtime verification (assertions, loop invariants) and compile-time static verification via a weakest precondition verification condition generator backed by the Z3 SMT solver.
 
 ---
 
@@ -120,13 +120,13 @@ Launch the interactive Read-Eval-Print Loop:
 This launches a persistent shell where you can type code and execute it line by line:
 
 ```
-Toy Compiler REPL (Day 15)
+Vera REPL
 Type code and press Enter. Type 'exit' to quit.
 
-toy> let a = 10;
-toy> print a * 2;
+vera> let a = 10;
+vera> print a * 2;
 20.00
-toy> exit
+vera> exit
 ```
 
 ### 2. File Mode

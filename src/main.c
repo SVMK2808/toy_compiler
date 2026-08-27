@@ -151,12 +151,12 @@ int main(int argc, char **argv){
             free(src);
         }else {
             // Mode 3: Interactive REPL Terminal
-            printf("Toy Compiler REPL (Day 15)\n"
+            printf("Vera REPL\n"
                      "Type code and press Enter. Type 'exit' to quit.\n\n"
                     );
                     char line[1024];
                     while(1){
-                        printf("toy> ");
+                        printf("vera> ");
                         // For EOF - Ctrl + D shortcut
                         if(!fgets(line, sizeof(line), stdin)){
                             break;
