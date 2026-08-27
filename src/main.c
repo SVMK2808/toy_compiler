@@ -134,7 +134,7 @@ int main(int argc, char **argv){
     parser_init(&p, "");
 
     if(argc > 2){
-        fprintf(stderr, "Usage: %s [file.toy]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [file.ver]\n", argv[0]);
         return 1;
     }
 

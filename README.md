@@ -10,7 +10,7 @@ Vera is a **Verification Aware Programming Language** featuring both runtime ver
 ## Architecture Overview
 
 ```
-Source Code (*.toy)
+Source Code (*.ver)
        │
        ▼
    [Lexer]          (src/lexer.c, include/lexer.h)
@@ -134,7 +134,7 @@ vera> exit
 Pass a source file path to compile and run it. This mode outputs the parsed Abstract Syntax Tree (AST) structure and the final program outputs:
 
 ```bash
-./compiler test_scripts/01_simple.toy
+./compiler test_scripts/01_simple.ver
 ```
 
 **Example Output**:
@@ -174,7 +174,7 @@ echo "let x = 5; print x;" | ./compiler
 Or:
 
 ```bash
-cat test_scripts/01_simple.toy | ./compiler
+cat test_scripts/01_simple.ver | ./compiler
 ```
 
 ---
@@ -198,4 +198,4 @@ cat test_scripts/01_simple.toy | ./compiler
   - [codegen.c](file:///Users/svmk/toy_compiler/src/codegen.c): Translating AST nodes into virtual machine instructions.
   - [vm.c](file:///Users/svmk/toy_compiler/src/vm.c): Stack machine execution loop, heap storage, frame handling.
   - [symtable.c](file:///Users/svmk/toy_compiler/src/symtable.c): Variable lookup and symbol registration.
-- [test_scripts/](file:///Users/svmk/toy_compiler/test_scripts): Directory containing example `.toy` scripts validating various compiler capabilities.
+- [test_scripts/](file:///Users/svmk/toy_compiler/test_scripts): Directory containing example `.ver` scripts validating various compiler capabilities.
