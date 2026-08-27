@@ -5,6 +5,7 @@
 #include "../include/parser.h"
 #include "../include/symtable.h"
 #include "../include/token.h"
+#include "../include/verify.h"
 #include "../include/vm.h"
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +26,20 @@ void run_source(Parser *p, VM *vm, const char *src, bool is_repl){
     int line_start_ip = vm -> code_count;
     int count = 0;
     ASTNode **stmts = parse_program(p, &count);
+
+    // Perform static verification on the statements
+    if(count > 0){
+        if(!verify_program(stmts, count)){
+            fprintf(stderr, "Error: Static verification failed. VM execution aborted. \n");
+            for(int i = 0; i < count; i++)
+                free_ast(stmts[i]);
+            
+            free(stmts);
+            if(is_repl) return; // Skip VM execution, return to REPL prompt
+            exit(1);            // Exit binary with failure code
+        }
+        printf("Static verification succeeded. \n");
+    }
     
     // Only print AST for file outputs, not int the interactive REPL
     if(!is_repl && count > 0){

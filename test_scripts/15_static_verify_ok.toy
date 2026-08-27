@@ -1,0 +1,7 @@
+let x = 5;
+x = x + 1;
+assert x > 5;
+
+fn add(a, b) requires a > 0 ensures result > b {
+    return a + b;
+}
