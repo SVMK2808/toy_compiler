@@ -245,6 +245,7 @@ bool prove_formula(ASTNode *vc, const char* check_name){
     print_smt_bool(out, vc);
     fprintf(out, "))\n");
     fprintf(out, "(check-sat)\n");
+    fprintf(out, "(get-model)\n"); // Query the solver for the model it sat
     fclose(out);
 
     // Run Z3
@@ -263,16 +264,50 @@ bool prove_formula(ASTNode *vc, const char* check_name){
         return false;
     }
 
-    pclose(fp);
-    remove("temp_query.smt2");
-
+    
     // If negation is unsatisfiable, then the original VC holds!
     if(strncmp(response, "unsat", 5) == 0){
         printf("Verification PASS: %s\n", check_name);
+        pclose(fp);
+        remove("temp_query.smt2");
         return true;
     }else {
         printf("Verification FAIL: %s (Z3 output: %s)\n", check_name, response);
+        printf("Counterexample values: \n");
+        char line[256];
+        char var_name[64] = "";
+        while(fgets(line, sizeof(line), fp) != NULL){
+            char *def = strstr(line, "define-fun");
+            if(def){
+                sscanf(def, "define-fun %63s", var_name);
+            }else{
+                if(strlen(var_name) > 0){
+                    char *val_ptr = line;
+                    while(*val_ptr == ' ' || *val_ptr == '\t') val_ptr++;
+                    // Remove trailing newline and parens
+                    int len = strlen(val_ptr);
+                    while(len > 0 && (val_ptr[len - 1] == '\n' || val_ptr[len - 1] == ')'
+                            || val_ptr[len - 1] == '\r')){
+                                val_ptr[len - 1] = '\0';
+                                len--;
+                            }
+                            // Format negative parenthesized numbers like "(- 5.0 "-> "-5.0"
+                            char *neg = strstr(val_ptr, "(- ");
+                            if(neg){
+                                memmove(neg, neg + 2, strlen(neg + 2) + 1);
+                                *neg = '-';
+                            }
+
+                            if(len > 0){
+                                printf(" %s = %s\n", var_name, val_ptr);
+                            }
+                            var_name[0] = '\0';
+                }
+            }
+        }
         verification_success = false;
+        pclose(fp);
+        remove("temp_query.smt2");
         return false;
     }
 }
