@@ -1,0 +1,13 @@
+{
+  "name": "vera-ide",
+  "version": "1.0.0",
+  "description": "Interactive Web IDE for Vera (Verification-Aware Programming Language)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

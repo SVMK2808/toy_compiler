@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vera IDE — Verification-Aware Programming Language</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Header -->
+        <header class="top-nav">
+            <div class="brand">
+                <div class="brand-logo">
+                    <span class="logo-symbol">∀</span>
+                </div>
+                <div class="brand-text">
+                    <h1>Vera <span class="tag">IDE</span></h1>
+                    <span class="subtext">Verification-Aware Programming Language</span>
+                </div>
+            </div>
+
+            <div class="toolbar-actions">
+                <button id="btn-run" class="btn btn-primary" title="Verify with Z3 and Execute VM (Cmd/Ctrl + Enter)">
+                    <span class="btn-icon">▶</span>
+                    <span>Verify & Run</span>
+                    <kbd class="shortcut">⌘↵</kbd>
+                </button>
+                <button id="btn-verify" class="btn btn-secondary" title="Static Verification with Z3 (Cmd/Ctrl + Shift + Enter)">
+                    <span class="btn-icon">⚡</span>
+                    <span>Verify (Z3)</span>
+                </button>
+                <button id="btn-clear" class="btn btn-ghost" title="Clear Terminal Output">
+                    <span class="btn-icon">⌫</span>
+                    <span>Clear</span>
+                </button>
+            </div>
+
+            <div class="header-status" id="system-status">
+                <span class="status-dot"></span>
+                <span class="status-label">Ready</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace Body -->
+        <main class="workspace-grid">
+            <!-- Sidebar: Example Library -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Examples & Tests</h3>
+                    <span class="badge" id="examples-count">0</span>
+                </div>
+                <div class="examples-list" id="examples-container">
+                    <div class="loading-spinner">Loading examples...</div>
+                </div>
+                <div class="sidebar-footer">
+                    <div class="shortcut-tip">
+                        <span>Tip:</span> Click any test script to load and verify.
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Editor Section -->
+            <section class="editor-section">
+                <div class="editor-tabs">
+                    <div class="tab active" id="active-tab">
+                        <span class="tab-icon">📄</span>
+                        <span class="tab-title" id="current-filename">scratch.ver</span>
+                        <span class="tab-badge" id="file-dirty-indicator"></span>
+                    </div>
+                </div>
+
+                <div class="editor-wrapper">
+                    <div class="line-numbers" id="line-numbers">1</div>
+                    <div class="editor-container">
+                        <pre class="highlight-layer" id="highlight-layer" aria-hidden="true"></pre>
+                        <textarea id="code-editor" class="code-textarea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Write Vera code here (e.g. fn, let, invariant, requires, ensures, assert)..."></textarea>
+                    </div>
+                </div>
+
+                <div class="editor-statusbar">
+                    <div class="status-left">
+                        <span id="cursor-position">Ln 1, Col 1</span>
+                        <span class="separator">•</span>
+                        <span>Vera Language</span>
+                    </div>
+                    <div class="status-right">
+                        <span>UTF-8</span>
+                        <span class="separator">•</span>
+                        <span>Z3 SMT Backend</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Verification & Proof Diagnostics Panel -->
+            <aside class="verification-panel">
+                <div class="panel-header">
+                    <h3>Formal Verification</h3>
+                    <span class="panel-engine">Z3 Engine</span>
+                </div>
+
+                <div class="panel-content">
+                    <!-- Status Banner -->
+                    <div class="verification-card" id="status-card">
+                        <div class="card-icon" id="status-icon">🛡️</div>
+                        <div class="card-details">
+                            <h4 id="status-heading">Awaiting Verification</h4>
+                            <p id="status-description">Click "Verify & Run" to generate weakest preconditions and query Z3.</p>
+                        </div>
+                    </div>
+
+                    <!-- Counterexamples Section -->
+                    <div class="section-block" id="counterexamples-section" style="display: none;">
+                        <div class="section-title text-danger">
+                            <span>⚠️ Counterexample Found</span>
+                        </div>
+                        <p class="section-subtitle">Z3 discovered concrete variable assignments that violate your contract:</p>
+                        <div class="counterexamples-grid" id="counterexamples-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Individual Checks List -->
+                    <div class="section-block" id="checks-section">
+                        <div class="section-title">
+                            <span>Proof Obligations</span>
+                        </div>
+                        <div class="checks-list" id="checks-container">
+                            <div class="empty-state">No verification conditions generated yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Bottom Drawer: Output & AST Tabs -->
+        <footer class="bottom-dock">
+            <div class="dock-tabs">
+                <button class="dock-tab active" data-tab="output">
+                    <span>Program Output</span>
+                </button>
+                <button class="dock-tab" data-tab="ast">
+                    <span>Abstract Syntax Tree (AST)</span>
+                </button>
+                <button class="dock-tab" data-tab="logs">
+                    <span>Raw Compiler Output</span>
+                </button>
+            </div>
+
+            <div class="dock-body">
+                <div class="tab-pane active" id="pane-output">
+                    <pre class="terminal-view" id="terminal-output">Ready. Press "Verify & Run" to execute.</pre>
+                </div>
+                <div class="tab-pane" id="pane-ast">
+                    <pre class="terminal-view" id="ast-output">AST will appear here after parsing.</pre>
+                </div>
+                <div class="tab-pane" id="pane-logs">
+                    <pre class="terminal-view" id="logs-output">Raw compiler logs will appear here.</pre>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

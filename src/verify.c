@@ -248,8 +248,8 @@ bool prove_formula(ASTNode *vc, const char* check_name){
     fprintf(out, "(get-model)\n"); // Query the solver for the model it sat
     fclose(out);
 
-    // Run Z3
-    FILE *fp = popen("z3 temp_query.smt2 2>/dev/null", "r");
+    // Run Z3 (support Apple Silicon /opt/homebrew/bin/z3 and standard PATH)
+    FILE *fp = popen("(/opt/homebrew/bin/z3 temp_query.smt2 || z3 temp_query.smt2) 2>/dev/null", "r");
     if(!fp){
         fprintf(stderr, "Error: Z3 solver could not be executed. Is it on your PATH?\n");
         remove("temp_query.smt2");
