@@ -24,6 +24,15 @@
             </div>
 
             <div class="toolbar-actions">
+                <button id="btn-new" class="btn btn-secondary" title="Create a new Vera file">
+                    <span class="btn-icon">＋</span>
+                    <span>New File</span>
+                </button>
+                <button id="btn-save" class="btn btn-secondary" title="Save current file (Cmd/Ctrl + S)">
+                    <span class="btn-icon">💾</span>
+                    <span>Save</span>
+                    <kbd class="shortcut">⌘S</kbd>
+                </button>
                 <button id="btn-run" class="btn btn-primary" title="Verify with Z3 and Execute VM (Cmd/Ctrl + Enter)">
                     <span class="btn-icon">▶</span>
                     <span>Verify & Run</span>
@@ -51,7 +60,10 @@
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h3>Examples & Tests</h3>
-                    <span class="badge" id="examples-count">0</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button id="btn-sidebar-new" class="sidebar-icon-btn" title="Create New File">＋</button>
+                        <span class="badge" id="examples-count">0</span>
+                    </div>
                 </div>
                 <div class="examples-list" id="examples-container">
                     <div class="loading-spinner">Loading examples...</div>

@@ -158,6 +158,39 @@ const server = http.createServer((req, res) => {
         }
     }
 
+    // API: POST /api/save - Save file to test_scripts directory
+    if (pathname === '/api/save' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+            try {
+                const parsedBody = JSON.parse(body || '{}');
+                let { filename, content } = parsedBody;
+
+                if (!filename || typeof filename !== 'string') {
+                    return sendJson(res, 400, { error: 'Filename is required' });
+                }
+                if (typeof content !== 'string') {
+                    content = '';
+                }
+
+                // Sanitize filename and ensure .ver extension
+                filename = path.basename(filename.trim());
+                if (!filename.endsWith('.ver')) {
+                    filename += '.ver';
+                }
+
+                const targetPath = path.join(SCRIPTS_DIR, filename);
+                fs.writeFileSync(targetPath, content, 'utf-8');
+
+                return sendJson(res, 200, { success: true, filename });
+            } catch (err) {
+                return sendJson(res, 500, { error: err.message });
+            }
+        });
+        return;
+    }
+
     // API: POST /api/execute
     if (pathname === '/api/execute' && req.method === 'POST') {
         let body = '';

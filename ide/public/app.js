@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRun = document.getElementById('btn-run');
     const btnVerify = document.getElementById('btn-verify');
     const btnClear = document.getElementById('btn-clear');
+    const btnNew = document.getElementById('btn-new');
+    const btnSave = document.getElementById('btn-save');
+    const btnSidebarNew = document.getElementById('btn-sidebar-new');
+    const fileDirtyIndicator = document.getElementById('file-dirty-indicator');
     const systemStatus = document.getElementById('system-status');
 
     const statusCard = document.getElementById('status-card');
@@ -118,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Editor Event Listeners
     codeEditor.addEventListener('input', () => {
+        fileDirtyIndicator.classList.add('dirty');
         syncEditor();
         updateCursorInfo();
     });
@@ -131,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     codeEditor.addEventListener('click', updateCursorInfo);
     codeEditor.addEventListener('keyup', updateCursorInfo);
 
-    // Tab key support (4 spaces)
+    // Tab key support (4 spaces) & Shortcuts (Cmd+Enter, Cmd+S)
     codeEditor.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
@@ -144,8 +149,88 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
             e.preventDefault();
             executeCode();
+        } else if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+            e.preventDefault();
+            saveCurrentFile();
         }
     });
+
+    // New File Function
+    function createNewFile() {
+        const defaultName = `new_program_${Date.now().toString().slice(-4)}.ver`;
+        const name = prompt('Enter a name for the new Vera file:', defaultName);
+        if (!name) return;
+
+        let filename = name.trim();
+        if (!filename.endsWith('.ver')) {
+            filename += '.ver';
+        }
+
+        const template = `// ${filename}
+// Verification-Aware Programming Language
+
+fn safe_divide(a, b) requires b != 0 ensures result * b == a {
+    return a / b;
+}
+
+let x = 10;
+let y = 2;
+assert x > y;
+print safe_divide(x, y);
+`;
+
+        currentFilename.textContent = filename;
+        currentActiveId = filename;
+        codeEditor.value = template;
+        fileDirtyIndicator.classList.remove('dirty');
+
+        // Deselect sidebar items
+        document.querySelectorAll('.example-item').forEach(el => el.classList.remove('active'));
+
+        syncEditor();
+        updateCursorInfo();
+        saveCurrentFile(filename);
+    }
+
+    // Save File Function
+    async function saveCurrentFile(explicitFilename) {
+        let filename = explicitFilename || currentFilename.textContent.trim();
+        if (!filename || filename === 'scratch.ver') {
+            filename = prompt('Enter filename to save:', 'program.ver');
+            if (!filename) return;
+        }
+
+        if (!filename.endsWith('.ver')) {
+            filename += '.ver';
+        }
+
+        const content = codeEditor.value;
+
+        try {
+            const res = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename, content })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                currentFilename.textContent = data.filename;
+                fileDirtyIndicator.classList.remove('dirty');
+                systemStatus.querySelector('.status-label').textContent = `Saved ${data.filename}`;
+                // Reload sidebar list
+                loadExamples(data.filename);
+            } else {
+                alert(`Save failed: ${data.error}`);
+            }
+        } catch (err) {
+            alert(`Error saving file: ${err.message}`);
+        }
+    }
+
+    btnNew.addEventListener('click', createNewFile);
+    if (btnSidebarNew) btnSidebarNew.addEventListener('click', createNewFile);
+    btnSave.addEventListener('click', () => saveCurrentFile());
 
     // Dock Tabs Switcher
     dockTabs.forEach(tab => {
@@ -267,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnVerify.addEventListener('click', executeCode);
 
     // Load Examples Library
-    async function loadExamples() {
+    async function loadExamples(preferredFilename) {
         try {
             const res = await fetch('/api/examples');
             const data = await res.json();
@@ -294,6 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentActiveId = ex.id;
                     currentFilename.textContent = ex.filename;
                     codeEditor.value = ex.content;
+                    fileDirtyIndicator.classList.remove('dirty');
                     syncEditor();
                     updateCursorInfo();
                     executeCode();
@@ -301,19 +387,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 examplesContainer.appendChild(item);
 
-                // Auto-select 14_func_post_fail or 15_static_verify_ok as default starter
-                if (ex.filename === '14_func_post_fail.ver' || (!currentActiveId && idx === 0)) {
+                // Auto-select preferred filename or default
+                const shouldSelect = preferredFilename 
+                    ? ex.filename === preferredFilename
+                    : (!currentActiveId && (ex.filename === '14_func_post_fail.ver' || idx === 0));
+
+                if (shouldSelect) {
                     item.classList.add('active');
                     currentActiveId = ex.id;
                     currentFilename.textContent = ex.filename;
                     codeEditor.value = ex.content;
+                    fileDirtyIndicator.classList.remove('dirty');
                 }
             });
 
             syncEditor();
             updateCursorInfo();
-            // Automatically run initial verification
-            executeCode();
+            if (!preferredFilename) {
+                executeCode();
+            }
         } catch (err) {
             examplesContainer.innerHTML = `<div class="empty-state">Failed to load examples: ${err.message}</div>`;
         }
